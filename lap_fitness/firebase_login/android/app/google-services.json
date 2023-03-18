@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "171214035542",
+    "project_id": "lap-firebase-ac2a7",
+    "storage_bucket": "lap-firebase-ac2a7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:171214035542:android:498c9f3f565fa4471279f7",
+        "android_client_info": {
+          "package_name": "com.example.firebase_login"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "171214035542-dh4sfjuf3qilb4hnaaocn56lljs3d5uq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVY61CRzsO8K-LLTxg7qUPc0f2Q3xYP6k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "171214035542-dh4sfjuf3qilb4hnaaocn56lljs3d5uq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
