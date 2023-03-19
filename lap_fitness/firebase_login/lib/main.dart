@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'login_page.dart';
+import 'signup_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +20,7 @@ Future<void> main() async {
   } catch (e) {
     print('Error initializing Firebase: $e');
   }
-  runApp(MyApp());
+  runApp(MaterialApp(home: MyApp()));
 }
 
 class MyApp extends StatefulWidget {
@@ -40,24 +41,46 @@ class _MyAppState extends State<MyApp> {
 
   void _initializeApp() async {
     try {
-      final User? currentUser = FirebaseAuth.instance.currentUser;
-      setState(() {
-        _isLoading = false;
-        _currentUser = currentUser;
-      });
-
-      _authStateStream = FirebaseAuth.instance.authStateChanges();
-      _authStateStream.listen((user) {
+      final FirebaseAuth auth = FirebaseAuth.instance;
+      await auth.authStateChanges().listen((User? user) {
         setState(() {
           _isLoading = false;
           _currentUser = user;
         });
+      });
+      _currentUser = auth.currentUser;
+      setState(() {
+        _isLoading = false;
       });
     } catch (e) {
       print('Error initializing the app: $e');
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  void goToLoginPage() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => LoginPage(),
+      ),
+    );
+  }
+
+  void goToSignUpPage() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SignupPage(),
+      ),
+    );
+  }
+
+  void _signOut() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+    } catch (e) {
+      print('Error signing out: $e');
     }
   }
 
@@ -68,11 +91,57 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: _isLoading
-          ? LoadingPage()
-          : (_currentUser == null
-              ? LoginPage()
-              : LoggedInPage(user: _currentUser!)),
+      home: Directionality(
+        textDirection: TextDirection.ltr,
+        child: _isLoading
+            ? LoadingPage()
+            : (_currentUser == null
+                ? Scaffold(
+                    body: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Builder(
+                            builder: (context) => InkWell(
+                              onTap: goToLoginPage,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  goToLoginPage();
+                                },
+                                child: Text('Log In'),
+                              ),
+                            ),
+                          ),
+                          Builder(
+                            builder: (context) => InkWell(
+                              onTap: goToSignUpPage,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  goToSignUpPage();
+                                },
+                                child: Text('Sign Up'),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : Scaffold(
+                    appBar: AppBar(
+                      title: Text('Logged In'),
+                      actions: [
+                        IconButton(
+                          onPressed: _signOut,
+                          icon: Icon(Icons.logout),
+                        ),
+                      ],
+                    ),
+                    body: Center(
+                      child: Text('Logged in as ${_currentUser!.email}'),
+                    ),
+                  )),
+      ),
     );
   }
 }
@@ -83,21 +152,6 @@ class LoadingPage extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: CircularProgressIndicator(),
-      ),
-    );
-  }
-}
-
-class LoggedInPage extends StatelessWidget {
-  final User user;
-
-  LoggedInPage({required this.user});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Text('Logged in as ${user.email}'),
       ),
     );
   }
