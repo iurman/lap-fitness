@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'home_page.dart';
+import 'signup_page.dart';
+
 class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -163,7 +166,22 @@ class _LoginPageState extends State<LoginPage> {
         ),
         obscureText: true,
       ),
-      SizedBox(height: 20)
+      SizedBox(height: 20),
+      ElevatedButton(
+        child: Text(_isLoginForm ? 'Login' : 'Create Account'),
+        onPressed: _isLoginForm
+            ? _signInWithEmailAndPassword
+            : _createUserWithEmailAndPassword,
+      ),
+      TextButton(
+        child: Text(_isLoginForm ? 'Create Account' : 'Back to Login'),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SignupPage()),
+          );
+        },
+      ),
     ]);
   }
 }

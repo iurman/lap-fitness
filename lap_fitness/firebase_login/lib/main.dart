@@ -87,62 +87,62 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Firebase Auth Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: Directionality(
-        textDirection: TextDirection.ltr,
-        child: _isLoading
-            ? LoadingPage()
-            : (_currentUser == null
-                ? Scaffold(
-                    body: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Builder(
-                            builder: (context) => InkWell(
-                              onTap: goToLoginPage,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  goToLoginPage();
-                                },
-                                child: Text('Log In'),
+        title: 'Flutter Firebase Auth Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: Directionality(
+          textDirection: TextDirection.ltr,
+          child: _isLoading
+              ? LoadingPage()
+              : (_currentUser == null
+                  ? Scaffold(
+                      body: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Builder(
+                              builder: (context) => InkWell(
+                                onTap: goToLoginPage,
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    goToLoginPage();
+                                  },
+                                  child: Text('Log In'),
+                                ),
                               ),
                             ),
-                          ),
-                          Builder(
-                            builder: (context) => InkWell(
-                              onTap: goToSignUpPage,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  goToSignUpPage();
-                                },
-                                child: Text('Sign Up'),
+                            Builder(
+                              builder: (context) => InkWell(
+                                onTap: goToSignUpPage,
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    goToSignUpPage();
+                                  },
+                                  child: Text('Sign Up'),
+                                ),
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : Scaffold(
+                      appBar: AppBar(
+                        title: Text('Logged In'),
+                        actions: [
+                          IconButton(
+                            onPressed: _signOut,
+                            icon: Icon(Icons.logout),
                           ),
                         ],
                       ),
-                    ),
-                  )
-                : Scaffold(
-                    appBar: AppBar(
-                      title: Text('Logged In'),
-                      actions: [
-                        IconButton(
-                          onPressed: _signOut,
-                          icon: Icon(Icons.logout),
-                        ),
-                      ],
-                    ),
-                    body: Center(
-                      child: Text('Logged in as ${_currentUser!.email}'),
-                    ),
-                  )),
-      ),
-    );
+                      body: Center(
+                        child: Text('Logged in as ${_currentUser!.email}'),
+                      ),
+                    )),
+        ),
+        debugShowCheckedModeBanner: false);
   }
 }
 
