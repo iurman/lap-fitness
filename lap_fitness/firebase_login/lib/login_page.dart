@@ -16,6 +16,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
+  bool _obscureText = false;
   bool _isLoginForm = true;
   bool _isLoading = false;
 
@@ -164,7 +165,15 @@ class _LoginPageState extends State<LoginPage> {
         decoration: InputDecoration(
           labelText: 'Password',
         ),
-        obscureText: true,
+        obscureText: _obscureText,
+      ),
+      IconButton(
+        icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off),
+        onPressed: () {
+          setState(() {
+            _obscureText = !_obscureText;
+          });
+        },
       ),
       SizedBox(height: 20),
       ElevatedButton(

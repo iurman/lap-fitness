@@ -14,6 +14,8 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  bool _obscureText = false;
+
   Future<void> _createUserWithEmailAndPassword() async {
     try {
       final UserCredential userCredential =
@@ -59,7 +61,16 @@ class _SignupPageState extends State<SignupPage> {
               decoration: InputDecoration(
                 labelText: 'Password',
               ),
-              obscureText: true,
+              obscureText: _obscureText,
+            ),
+            IconButton(
+              icon:
+                  Icon(_obscureText ? Icons.visibility : Icons.visibility_off),
+              onPressed: () {
+                setState(() {
+                  _obscureText = !_obscureText;
+                });
+              },
             ),
             SizedBox(height: 16),
             ElevatedButton(
