@@ -1,8 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'feed_page.dart';
+import 'note_page.dart';
+import 'meal_tracking_page.dart';
+import 'calendar_page.dart';
+import 'home.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -10,26 +15,45 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final user = FirebaseAuth.instance.currentUser!;
+  int _selectedIndex = 0;
+
+  static final List<Map<String, dynamic>> _sections = [
+    {'name': 'Feed', 'icon': Icons.rss_feed, 'page': FeedPage()},
+    {'name': 'Notes', 'icon': Icons.note, 'page': NotePage()},
+    {'name': 'Home', 'icon': Icons.home, 'page': Home()},
+    {
+      'name': 'Meal Tracking',
+      'icon': Icons.restaurant_menu,
+      'page': MealTrackingPage()
+    },
+    {'name': 'Calendar', 'icon': Icons.calendar_today, 'page': CalendarPage()},
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // ignore: prefer_const_constructors
       body: Center(
-          child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('Signed in as: ' + user.email!),
-          SizedBox(height: 15),
-          MaterialButton(
-            onPressed: () {
-              FirebaseAuth.instance.signOut();
-            },
-            color: Colors.blue,
-            child: Text('Sign Out'),
-          )
-        ],
-      )),
+        child: _sections[_selectedIndex]
+            ['page'], // Use the selected page based on the current index
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        items: _sections
+            .map((section) => BottomNavigationBarItem(
+                  icon: Icon(section['icon']),
+                  label: section['name'],
+                ))
+            .toList(),
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.blue,
+        onTap: _onItemTapped,
+      ),
     );
   }
 }
