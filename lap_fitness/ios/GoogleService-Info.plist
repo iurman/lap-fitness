@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>1076168022651-rukj9mk92s0n8uk86lviauspa65o1jq2.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.1076168022651-rukj9mk92s0n8uk86lviauspa65o1jq2</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCf744vF-01zLswYrP-68K6IX4aaYOhIIQ</string>
+	<key>GCM_SENDER_ID</key>
+	<string>1076168022651</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.lapFitness</string>
+	<key>PROJECT_ID</key>
+	<string>lap-fitness</string>
+	<key>STORAGE_BUCKET</key>
+	<string>lap-fitness.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false/>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false/>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true/>
+	<key>IS_GCM_ENABLED</key>
+	<true/>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true/>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:1076168022651:ios:0b74e2614c500d5e68a0de</string>
+	<key>DATABASE_URL</key>
+	<string>https://lap-fitness-default-rtdb.firebaseio.com</string>
+</dict>
+</plist>

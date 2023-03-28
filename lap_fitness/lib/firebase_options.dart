@@ -71,7 +71,7 @@ class DefaultFirebaseOptions {
     databaseURL: 'https://lap-fitness-default-rtdb.firebaseio.com',
     storageBucket: 'lap-fitness.appspot.com',
     iosClientId:
-        '1076168022651-9rnt6g0pg5jsaglkbnl0565ejq1ru4l6.apps.googleusercontent.com',
+        '1076168022651-rukj9mk92s0n8uk86lviauspa65o1jq2.apps.googleusercontent.com',
     iosBundleId: 'com.example.lapFitnessClone',
   );
 

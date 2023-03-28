@@ -2,20 +2,13 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'main_page.dart';
+import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await Firebase.initializeApp(
-      options: FirebaseOptions(
-          apiKey: 'AIzaSyBKVvcV9EPJL_OXx3I1p6z4forM-kAiqEg',
-          appId: '1:1076168022651:web:c48ba297634030ba68a0de',
-          messagingSenderId: '1076168022651',
-          projectId: 'lap-fitness',
-          authDomain: 'lap-fitness.firebaseapp.com',
-          databaseURL: 'https://lap-fitness-default-rtdb.firebaseio.com',
-          storageBucket: 'lap-fitness.appspot.com',
-          measurementId: 'G-476VRMEZBX'),
+      options: DefaultFirebaseOptions.currentPlatform,
     );
   } catch (e) {
     // ignore: avoid_print
