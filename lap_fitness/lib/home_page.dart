@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'feed_page.dart';
@@ -15,7 +17,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final user = FirebaseAuth.instance.currentUser!;
-  int _selectedIndex = 0;
+  int _selectedIndex = 2;
 
   static final List<Map<String, dynamic>> _sections = [
     {'name': 'Feed', 'icon': Icons.rss_feed, 'page': FeedPage()},

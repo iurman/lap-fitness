@@ -1,9 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:lap_fitness/main_page.dart';
-import 'login_page.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
+import 'main_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
