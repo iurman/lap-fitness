@@ -43,9 +43,9 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               // ignore: prefer_const_literals_to_create_immutables
               children: [
-                Image.asset('assets/images/lap.png'),
+                Image.asset('assets/images/lap2.png', width: 400, height: 400),
                 // Hello Again!
-                SizedBox(height: 20),
+                SizedBox(height: 0),
                 Text(
                   'Welcome back!',
                   style: TextStyle(
@@ -108,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: Container(
                       padding: EdgeInsets.all(25),
                       decoration: BoxDecoration(
-                        color: Colors.blue,
+                        color: Color.fromARGB(255, 138, 104, 35),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
@@ -142,7 +142,7 @@ class _LoginPageState extends State<LoginPage> {
                       child: Text(
                         ' Register now',
                         style: TextStyle(
-                          color: Colors.blue,
+                          color: Color.fromARGB(255, 138, 104, 35),
                           fontWeight: FontWeight.bold,
                         ),
                       ),

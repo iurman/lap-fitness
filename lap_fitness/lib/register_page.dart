@@ -56,7 +56,7 @@ class _RegisterPageState extends State<RegisterPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               // ignore: prefer_const_literals_to_create_immutables, duplicate_ignore
               children: [
-                Image.asset('assets/images/lap.png'),
+                Image.asset('assets/images/lap2.png', width: 400, height: 400),
                 // Hello Again!
                 SizedBox(height: 20),
                 Text(
@@ -144,7 +144,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: Container(
                       padding: EdgeInsets.all(25),
                       decoration: BoxDecoration(
-                        color: Colors.blue,
+                        color: Color.fromARGB(255, 138, 104, 35),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
@@ -178,7 +178,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       child: Text(
                         ' Login now',
                         style: TextStyle(
-                          color: Colors.blue,
+                          color: Color.fromARGB(255, 138, 104, 35),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
