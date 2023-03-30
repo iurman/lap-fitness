@@ -10,12 +10,14 @@ class NotesPage extends StatefulWidget {
 
 class _NotesPageState extends State<NotesPage> {
   final databaseReference = FirebaseDatabase.instance.reference();
-
+  User? user = FirebaseAuth.instance.currentUser;
   List notesList = [];
 
   // Function to add a new note to Firebase
   addNewNote() async {
     await databaseReference
+        .child("users")
+        .child(user!.uid)
         .child("notes")
         .push()
         .set({"name": "New Note", "content": ""});
@@ -24,13 +26,20 @@ class _NotesPageState extends State<NotesPage> {
 
   // Function to update the name of a note in Firebase
   updateNoteName(String key, String name) async {
-    await databaseReference.child("notes").child(key).update({"name": name});
+    await databaseReference
+        .child("users")
+        .child(user!.uid)
+        .child("notes")
+        .child(key)
+        .update({"name": name});
     setState(() {});
   }
 
   // Function to update the content of a note in Firebase
   updateNoteContent(String key, String content) async {
     await databaseReference
+        .child("users")
+        .child(user!.uid)
         .child("notes")
         .child(key)
         .update({"content": content});
@@ -39,7 +48,12 @@ class _NotesPageState extends State<NotesPage> {
 
   // Function to delete a note from Firebase
   deleteNote(String key) async {
-    await databaseReference.child("notes").child(key).remove();
+    await databaseReference
+        .child("users")
+        .child(user!.uid)
+        .child("notes")
+        .child(key)
+        .remove();
     setState(() {});
   }
 
@@ -48,7 +62,12 @@ class _NotesPageState extends State<NotesPage> {
     super.initState();
 
     // Attach a listener to the "notes" node in Firebase to update the notesList
-    databaseReference.child("notes").onValue.listen((event) {
+    databaseReference
+        .child("users")
+        .child(user!.uid)
+        .child("notes")
+        .onValue
+        .listen((event) {
       notesList.clear();
       if (event.snapshot.value != null) {
         Map<dynamic, dynamic> notesMap =
