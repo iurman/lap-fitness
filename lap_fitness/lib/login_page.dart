@@ -4,6 +4,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lap_fitness/forgot_pw_page.dart';
+import 'dart:async';
 
 class LoginPage extends StatefulWidget {
   final VoidCallback showRegisterPage;
@@ -32,6 +33,9 @@ class _LoginPageState extends State<LoginPage> {
           );
         },
       );
+      Timer(Duration(seconds: 2), () {
+        Navigator.of(context).pop();
+      });
     } on FirebaseAuthException catch (e) {
       print(e);
       showDialog(
@@ -42,6 +46,9 @@ class _LoginPageState extends State<LoginPage> {
           );
         },
       );
+      Timer(Duration(seconds: 2), () {
+        Navigator.of(context).pop();
+      });
     }
   }
 
