@@ -20,7 +20,7 @@ class _NotesPageState extends State<NotesPage> {
         .child(user!.uid)
         .child("notes")
         .push()
-        .set({"name": "New Note", "content": ""});
+        .set({"name": "", "content": ""});
     setState(() {});
   }
 
@@ -107,6 +107,7 @@ class _NotesPageState extends State<NotesPage> {
               children: [
                 // Editable name of the note
                 TextFormField(
+                  decoration: InputDecoration(hintText: "New Note"),
                   initialValue: notesList[index]["name"],
                   onChanged: (value) =>
                       updateNoteName(notesList[index]["key"], value),
@@ -115,6 +116,7 @@ class _NotesPageState extends State<NotesPage> {
                 // Editable content of the note
                 Expanded(
                   child: TextFormField(
+                    decoration: InputDecoration(hintText: "Type Here"),
                     initialValue: notesList[index]["content"],
                     onChanged: (value) =>
                         updateNoteContent(notesList[index]["key"], value),
