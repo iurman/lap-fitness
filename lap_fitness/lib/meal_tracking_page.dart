@@ -19,9 +19,6 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Meal Tracker'),
-      ),
       body: Column(
         children: [
           Padding(

@@ -85,9 +85,6 @@ class _NotesPageState extends State<NotesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Notes"),
-      ),
       body: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
@@ -135,6 +132,7 @@ class _NotesPageState extends State<NotesPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Color.fromARGB(255, 138, 104, 35),
         child: Icon(Icons.add),
         onPressed: () => addNewNote(),
       ),
