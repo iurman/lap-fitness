@@ -13,6 +13,8 @@ class _NotesPageState extends State<NotesPage> {
   User? user = FirebaseAuth.instance.currentUser;
   List notesList = [];
 
+  get database => null;
+
   // Function to add a new note to Firebase
   addNewNote() async {
     await databaseReference
@@ -152,9 +154,12 @@ class _NotesPageState extends State<NotesPage> {
                     IconButton(
                       icon: Icon(Icons.delete),
                       onPressed: () {
+                        // Delete note from database
+                        deleteNote(notesList[index]["key"]);
+
+                        // Remove note from notesList
                         setState(() {
-                          notesList
-                              .removeAt(index); // remove the note from the list
+                          notesList.removeAt(index);
                         });
                       },
                     ),
