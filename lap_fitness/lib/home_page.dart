@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'feed_page.dart';
@@ -38,29 +39,40 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        children: [
-          AppBar(
-            title: Text(_sections[_selectedIndex]['name']),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SettingsPage(),
-                    ),
-                  );
-                },
-                icon: Icon(Icons.settings),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color.fromARGB(255, 138, 104, 35),
+        title: Text(_sections[_selectedIndex]['name']),
+        actions: _selectedIndex == 2
+            ? [
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SettingsPage(),
+                      ),
+                    );
+                  },
+                  icon: Icon(Icons.settings),
+                ),
+              ]
+            : null,
+      ),
+      body: _sections[_selectedIndex]['page'],
+      bottomNavigationBar: BottomNavigationBar(
+        items: _sections
+            .map(
+              (section) => BottomNavigationBarItem(
+                icon: Icon(section['icon']),
+                label: section['name'],
               ),
-            ],
-          ),
-          Expanded(
-            child: _sections[_selectedIndex]['page'],
-          ),
-        ],
+            )
+            .toList(),
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        selectedItemColor: Color.fromARGB(255, 138, 104, 35),
+        unselectedItemColor: Color.fromARGB(255, 138, 104, 35),
       ),
     );
   }
