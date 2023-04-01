@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:lap_fitness/login_page.dart';
 import 'profile_settings_page.dart';
 import 'privacy_settings_page.dart';
 import 'account_settings_page.dart';
+import 'package:lap_fitness/auth_page.dart';
 
 class SettingsPage extends StatelessWidget {
   @override
@@ -40,6 +42,16 @@ class SettingsPage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => AccountSettingsPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.logout),
+            title: Text('Sign Out'),
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => AuthPage()),
               );
             },
           ),

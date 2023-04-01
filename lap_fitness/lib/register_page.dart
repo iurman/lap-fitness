@@ -1,6 +1,10 @@
 // ignore_for_file: prefer_const_constructors
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:lap_fitness/home_page.dart';
+import 'package:lap_fitness/main_page.dart';
 
 class RegisterPage extends StatefulWidget {
   final VoidCallback showLoginPage;
@@ -27,11 +31,36 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  Future signUp() async {
+  Future<void> signUp() async {
     if (passwordConfirmed()) {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim());
+      try {
+        UserCredential userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+                email: _emailController.text.trim(),
+                password: _passwordController.text.trim());
+        // Navigate to the home page after successful registration
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => HomePage()));
+        await showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              content: Text('Registered and Signed In!'),
+            );
+          },
+        );
+        Timer(Duration(seconds: 2), () {
+          Navigator.of(context).pop();
+        });
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'weak-password') {
+          print('The password provided is too weak.');
+        } else if (e.code == 'email-already-in-use') {
+          print('The account already exists for that email.');
+        }
+      } catch (e) {
+        print(e);
+      }
     }
   }
 
@@ -136,7 +165,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 SizedBox(height: 15),
 
-                // sign in button
+                // sign up button
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
                   child: GestureDetector(

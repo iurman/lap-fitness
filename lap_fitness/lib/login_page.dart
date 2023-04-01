@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:lap_fitness/forgot_pw_page.dart';
 import 'dart:async';
 
+import 'package:lap_fitness/home_page.dart';
+
 class LoginPage extends StatefulWidget {
   final VoidCallback showRegisterPage;
   const LoginPage({Key? key, required this.showRegisterPage}) : super(key: key);
@@ -19,7 +21,7 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  Future signIn() async {
+  Future<void> signIn() async {
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
@@ -29,12 +31,14 @@ class _LoginPageState extends State<LoginPage> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            content: Text('Signed in!'),
+            content: Text('Signed In!'),
           );
         },
       );
       Timer(Duration(seconds: 2), () {
         Navigator.of(context).pop();
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => HomePage()));
       });
     } on FirebaseAuthException catch (e) {
       print(e);
