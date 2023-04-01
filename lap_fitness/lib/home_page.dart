@@ -1,12 +1,11 @@
-// ignore_for_file: prefer_const_constructors
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'feed_page.dart';
 import 'note_page.dart';
 import 'meal_tracking_page.dart';
 import 'calendar_page.dart';
 import 'home.dart';
+import 'settings_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -39,22 +38,29 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: _sections[_selectedIndex]
-            ['page'], // Use the selected page based on the current index
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        items: _sections
-            .map((section) => BottomNavigationBarItem(
-                  icon: Icon(section['icon']),
-                  label: section['name'],
-                ))
-            .toList(),
-        currentIndex: _selectedIndex,
-        selectedItemColor: Color.fromARGB(255, 138, 104, 35),
-        onTap: _onItemTapped,
+    return SafeArea(
+      child: Column(
+        children: [
+          AppBar(
+            title: Text(_sections[_selectedIndex]['name']),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SettingsPage(),
+                    ),
+                  );
+                },
+                icon: Icon(Icons.settings),
+              ),
+            ],
+          ),
+          Expanded(
+            child: _sections[_selectedIndex]['page'],
+          ),
+        ],
       ),
     );
   }
