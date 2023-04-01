@@ -5,6 +5,7 @@ class PrivacySettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color.fromARGB(255, 138, 104, 35),
         title: Text('Privacy Settings'),
       ),
       body: Center(
