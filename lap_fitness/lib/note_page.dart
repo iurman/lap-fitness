@@ -88,43 +88,62 @@ class _NotesPageState extends State<NotesPage> {
       body: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 1,
+          childAspectRatio: 0.75,
         ),
         itemCount: notesList.length,
         itemBuilder: (BuildContext context, int index) {
+          final titleController =
+              TextEditingController(text: notesList[index]["name"]);
+          titleController.selection = TextSelection.fromPosition(
+              TextPosition(offset: titleController.text.length));
           return Container(
-            margin: EdgeInsets.all(8),
-            padding: EdgeInsets.all(8),
+            margin: EdgeInsets.all(12),
+            padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(8),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.3),
+                  blurRadius: 6,
+                  offset: Offset(0, 3),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Editable name of the note
                 TextFormField(
-                  decoration: InputDecoration(hintText: "New Note"),
-                  initialValue: notesList[index]["name"],
+                  controller: titleController,
+                  decoration: InputDecoration(
+                    hintText: "Title",
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 138, 104, 35),
+                  ),
                   onChanged: (value) =>
                       updateNoteName(notesList[index]["key"], value),
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: 12),
                 // Editable content of the note
                 Expanded(
                   child: TextFormField(
-                    decoration: InputDecoration(hintText: "Type Here"),
+                    decoration: InputDecoration(
+                      hintText: "Note",
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                    ),
                     initialValue: notesList[index]["content"],
                     onChanged: (value) =>
                         updateNoteContent(notesList[index]["key"], value),
                     maxLines: null,
+                    style: TextStyle(fontSize: 16),
                   ),
-                ),
-                SizedBox(height: 8),
-                // Delete button for the note
-                IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () => deleteNote(notesList[index]["key"]),
                 ),
               ],
             ),
