@@ -145,6 +145,21 @@ class _NotesPageState extends State<NotesPage> {
                     style: TextStyle(fontSize: 16),
                   ),
                 ),
+                // Delete button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.delete),
+                      onPressed: () {
+                        setState(() {
+                          notesList
+                              .removeAt(index); // remove the note from the list
+                        });
+                      },
+                    ),
+                  ],
+                ),
               ],
             ),
           );
