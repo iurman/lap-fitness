@@ -7,6 +7,7 @@ import 'meal_tracking_page.dart';
 import 'calendar_page.dart';
 import 'home.dart';
 import 'settings_page.dart';
+import 'package:lap_fitness/workout_tracker.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -22,7 +23,7 @@ class _HomePageState extends State<HomePage> {
   static final List<Map<String, dynamic>> _sections = [
     {'name': 'Feed', 'icon': Icons.rss_feed, 'page': FeedPage()},
     {'name': 'Notes', 'icon': Icons.note, 'page': NotesPage()},
-    {'name': 'Home', 'icon': Icons.home, 'page': Home()},
+    {'name': 'Home', 'icon': Icons.home, 'page': WorkoutTrackerPage()},
     {
       'name': 'Meal Tracking',
       'icon': Icons.restaurant_menu,

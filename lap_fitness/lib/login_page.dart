@@ -23,7 +23,8 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> signIn() async {
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
@@ -31,22 +32,30 @@ class _LoginPageState extends State<LoginPage> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            content: Text('Signed In!'),
+            content: Text('Signed In Successfully!'),
           );
         },
       );
       Timer(Duration(seconds: 2), () {
         Navigator.of(context).pop();
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => HomePage()));
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
       });
     } on FirebaseAuthException catch (e) {
+      String message = 'Error: Could not sign in. Please try again later.';
+      if (e.code == 'user-not-found') {
+        message = 'Error: No user found with this email address.';
+      } else if (e.code == 'wrong-password') {
+        message = 'Error: Incorrect password entered. Please try again.';
+      }
       print(e);
       showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
-            content: Text(e.message.toString()),
+            content: Text(message),
           );
         },
       );
