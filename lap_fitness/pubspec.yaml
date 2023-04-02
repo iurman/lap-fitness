@@ -70,6 +70,9 @@ flutter:
   assets:
     - assets/images/lap.png
     - assets/images/lap2.png
+    - assets/images/post.png
+    - assets/images/profile_me.png
+    - assets/images/profile.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 
