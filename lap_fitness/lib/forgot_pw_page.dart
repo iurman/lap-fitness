@@ -33,7 +33,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         },
       );
       Timer(Duration(seconds: 2), () {
-        Navigator.of(context).pop();
+        Navigator.pushReplacementNamed(context, '/');
       });
     } on FirebaseAuthException catch (e) {
       print(e);
@@ -56,6 +56,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 138, 104, 35),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, '/');
+          },
+        ),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,

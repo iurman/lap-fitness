@@ -33,8 +33,11 @@ class _LoadingPageState extends State<LoadingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text(widget.welcomeMessage),
-      ),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        CircularProgressIndicator(color: Color.fromARGB(255, 138, 104, 35)),
+        SizedBox(height: 16),
+        Text(widget.welcomeMessage),
+      ])),
     );
   }
 }
