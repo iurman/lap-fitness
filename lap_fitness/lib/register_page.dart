@@ -37,35 +37,57 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> signUp() async {
     if (passwordConfirmed()) {
+      setState(() {
+        isLoading = true;
+      });
       try {
         UserCredential userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
                 email: _emailController.text.trim(),
                 password: _passwordController.text.trim());
-        // Navigate to the home page after successful registration
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-        );
-        await showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              content: Text('Registered and Signed In!'),
+        if (userCredential.user != null) {
+          // Navigate to the home page after successful registration
+          await Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => LoadingPage(
+                welcomeMessage: 'Sucessfully Registered! Welcome!',
+              ),
+            ),
+          );
+
+          Timer(Duration(seconds: 2), () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomePage(),
+              ),
             );
-          },
-        );
-        Timer(Duration(seconds: 2), () {
-          Navigator.of(context).pop();
-        });
+          });
+        }
       } on FirebaseAuthException catch (e) {
+        setState(() {
+          isLoading = false;
+        });
         if (e.code == 'weak-password') {
           print('The password provided is too weak.');
+          showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                content: Text('The password provided is too weak.'),
+              );
+            },
+          );
         } else if (e.code == 'email-already-in-use') {
           print('The account already exists for that email.');
         }
       } catch (e) {
         print(e);
+      } finally {
+        setState(() {
+          isLoading = false;
+        });
       }
     }
   }

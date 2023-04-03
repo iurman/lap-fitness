@@ -1,6 +1,7 @@
 // ignore_for_file: use_key_in_widget_constructors
 // ignore_for_file: unused_import
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lap_fitness/login_page.dart';
 import 'profile_settings_page.dart';
@@ -51,8 +52,9 @@ class SettingsPage extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.logout),
             title: Text('Sign Out'),
-            onTap: () {
-              Navigator.pushReplacement(
+            onTap: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => AuthPage()),
               );
