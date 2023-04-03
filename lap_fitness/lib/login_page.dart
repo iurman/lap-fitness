@@ -34,23 +34,27 @@ class _LoginPageState extends State<LoginPage> {
         password: _passwordController.text.trim(),
       );
 
-      await Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => LoadingPage(
-            welcomeMessage: 'Welcome!',
-          ),
-        ),
-      );
+      if (userCredential.user != null) {
+        await Future.delayed(Duration(milliseconds: 500)); // wait for 500ms
 
-      Timer(Duration(seconds: 2), () {
-        Navigator.pushReplacement(
+        await Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => HomePage(),
+            builder: (context) => LoadingPage(
+              welcomeMessage: 'Welcome!',
+            ),
           ),
         );
-      });
+
+        Timer(Duration(seconds: 2), () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomePage(),
+            ),
+          );
+        });
+      }
     } on FirebaseAuthException catch (e) {
       setState(() {
         isLoading = false;
