@@ -1,10 +1,13 @@
 // ignore_for_file: prefer_const_constructors
+// ignore_for_file: use_key_in_widget_constructors
+// ignore_for_file: unused_import
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lap_fitness/home_page.dart';
 import 'package:lap_fitness/main_page.dart';
+import 'package:lap_fitness/loading_page.dart';
 
 class RegisterPage extends StatefulWidget {
   final VoidCallback showLoginPage;
@@ -22,6 +25,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmpasswordController = TextEditingController();
+  bool isLoading = false;
 
   @override
   void dispose() {

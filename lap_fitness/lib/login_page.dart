@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lap_fitness/forgot_pw_page.dart';
 import 'dart:async';
-
+import 'package:lap_fitness/loading_page.dart';
 import 'package:lap_fitness/home_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -20,36 +20,50 @@ class _LoginPageState extends State<LoginPage> {
   // text controllers
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool isLoading = false;
 
   Future<void> signIn() async {
+    setState(() {
+      isLoading = true;
+    });
+
     try {
       UserCredential userCredential =
           await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: Text('Signed In Successfully!'),
-          );
-        },
+
+      await Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LoadingPage(
+            welcomeMessage: 'Welcome!',
+          ),
+        ),
       );
+
       Timer(Duration(seconds: 2), () {
-        Navigator.of(context).pop();
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomePage()),
+          MaterialPageRoute(
+            builder: (context) => HomePage(),
+          ),
         );
       });
     } on FirebaseAuthException catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+
       String message = 'Error: Could not sign in. Please try again later.';
+
       if (e.code == 'user-not-found') {
         message = 'Error: No user found with this email address.';
       } else if (e.code == 'wrong-password') {
         message = 'Error: Incorrect password entered. Please try again.';
       }
+
       print(e);
       showDialog(
         context: context,
@@ -61,6 +75,10 @@ class _LoginPageState extends State<LoginPage> {
       );
       Timer(Duration(seconds: 2), () {
         Navigator.of(context).pop();
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
       });
     }
   }
