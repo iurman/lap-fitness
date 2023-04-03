@@ -13,7 +13,8 @@ class _FeedPageState extends State<FeedPage> {
       'time': '2 hours ago',
       'text':
           'Bro watch this amazing lift I am doing. My form is immaculate, no one can top me, this is peak human physique.',
-      'postImage': 'assets/images/post.png',
+      'postImage':
+          'assets/images/post.png', //need to add controller for image adding
       'likes': 10,
       'comments': 5,
     },

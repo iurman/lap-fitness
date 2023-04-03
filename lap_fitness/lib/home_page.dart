@@ -44,7 +44,8 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 138, 104, 35),
         title: Text(_sections[_selectedIndex]['name']),
-        actions: _selectedIndex == 2
+        automaticallyImplyLeading: false, // hide back button
+        actions: _selectedIndex == 2 // hide back button
             ? [
                 IconButton(
                   onPressed: () {

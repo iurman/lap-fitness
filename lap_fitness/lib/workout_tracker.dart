@@ -14,6 +14,7 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
   int _currentSeconds = 0;
   bool _isRunning = false;
   late Timer _timer;
+  final TextEditingController _repController = TextEditingController();
 
   void _startTimer() {
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
@@ -51,9 +52,18 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
     });
   }
 
-  void _nextRep() {
+  void _nextRep(int reps) {
     setState(() {
-      _currentRep++;
+      _currentRep = reps;
+      _currentSeconds = 0;
+    });
+  }
+
+  void _setReps() {
+    // Add this function
+    setState(() {
+      _currentRep = int.tryParse(_repController.text) ?? 1;
+      _repController.text = '';
       _currentSeconds = 0;
     });
   }
@@ -62,6 +72,13 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
     int minutes = seconds ~/ 60;
     int remainingSeconds = seconds % 60;
     return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  void dispose() {
+    // Add this override method
+    _repController.dispose();
+    super.dispose();
   }
 
   @override
@@ -104,7 +121,7 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
                 ),
                 SizedBox(width: 32),
                 IconButton(
-                  onPressed: _nextRep,
+                  onPressed: () => _nextRep(_currentRep + 1),
                   icon: Icon(Icons.arrow_upward),
                   iconSize: 48,
                 ),

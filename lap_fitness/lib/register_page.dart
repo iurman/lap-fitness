@@ -40,7 +40,9 @@ class _RegisterPageState extends State<RegisterPage> {
                 password: _passwordController.text.trim());
         // Navigate to the home page after successful registration
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => HomePage()));
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
         await showDialog(
           context: context,
           builder: (context) {

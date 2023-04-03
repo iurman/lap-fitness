@@ -19,7 +19,7 @@ class SettingsPage extends StatelessWidget {
             leading: Icon(Icons.person),
             title: Text('Profile Settings'),
             onTap: () {
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => ProfileSettingsPage()),
               );
@@ -29,7 +29,7 @@ class SettingsPage extends StatelessWidget {
             leading: Icon(Icons.privacy_tip),
             title: Text('Privacy Settings'),
             onTap: () {
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => PrivacySettingsPage()),
               );
@@ -39,7 +39,7 @@ class SettingsPage extends StatelessWidget {
             leading: Icon(Icons.account_circle),
             title: Text('Account Settings'),
             onTap: () {
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => AccountSettingsPage()),
               );
