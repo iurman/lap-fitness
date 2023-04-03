@@ -24,14 +24,21 @@ class _RegisterPageState extends State<RegisterPage> {
   // text controllers
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmpasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool isLoading = false;
+  bool _isObscure = true;
+
+  void _toggleObscure() {
+    setState(() {
+      _isObscure = !_isObscure;
+    });
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmpasswordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -94,7 +101,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   bool passwordConfirmed() {
     if (_passwordController.text.trim() ==
-        _confirmpasswordController.text.trim()) {
+        _confirmPasswordController.text.trim()) {
       return true;
     } else {
       return false;
@@ -159,12 +166,22 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: Padding(
                       padding: const EdgeInsets.only(left: 20.0),
                       child: TextField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Password',
-                          )),
+                        controller: _passwordController,
+                        obscureText: _isObscure,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Password',
+                          suffixIcon: IconButton(
+                            onPressed: _toggleObscure,
+                            icon: Icon(
+                              _isObscure
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -182,12 +199,22 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: Padding(
                       padding: const EdgeInsets.only(left: 20.0),
                       child: TextField(
-                          controller: _confirmpasswordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Confirm Password',
-                          )),
+                        controller: _confirmPasswordController,
+                        obscureText: _isObscure,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Confirm Password',
+                          suffixIcon: IconButton(
+                            onPressed: _toggleObscure,
+                            icon: Icon(
+                              _isObscure
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),

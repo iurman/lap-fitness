@@ -20,6 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   // text controllers
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _passwordVisible = false;
   bool isLoading = false;
 
   Future<void> signIn() async {
@@ -79,6 +80,15 @@ class _LoginPageState extends State<LoginPage> {
     } finally {
       setState(() {
         isLoading = false;
+      });
+    }
+    @override
+    void initState() {
+      super.initState();
+      _passwordController.addListener(() {
+        setState(() {
+          _passwordVisible = _passwordController.text.isNotEmpty;
+        });
       });
     }
   }
@@ -148,12 +158,26 @@ class _LoginPageState extends State<LoginPage> {
                     child: Padding(
                       padding: const EdgeInsets.only(left: 20.0),
                       child: TextField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Password',
-                          )),
+                        controller: _passwordController,
+                        obscureText: !_passwordVisible,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Password',
+                          suffixIcon: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _passwordVisible = !_passwordVisible;
+                              });
+                            },
+                            child: Icon(
+                              _passwordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
