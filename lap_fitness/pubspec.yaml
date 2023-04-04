@@ -42,6 +42,7 @@ dependencies:
   firebase_database: ^10.0.16
   cloud_firestore: ^4.5.0
 dev_dependencies:
+  flutter_launcher_icons: ^0.9.0
   flutter_test:
     sdk: flutter
 
@@ -98,3 +99,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+flutter_icons:
+  image_path: 'assets/images/lap2.png'
+  android: true
+  ios: true
