@@ -78,21 +78,9 @@ class _LoginPageState extends State<LoginPage> {
           );
         },
       );
-      Timer(Duration(seconds: 2), () {
-        Navigator.of(context).pop();
-      });
     } finally {
       setState(() {
         isLoading = false;
-      });
-    }
-    @override
-    void initState() {
-      super.initState();
-      _passwordController.addListener(() {
-        setState(() {
-          _passwordVisible = _passwordController.text.isNotEmpty;
-        });
       });
     }
   }
