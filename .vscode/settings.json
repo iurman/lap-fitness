@@ -2,5 +2,6 @@
     "cSpell.words": [
         "confirmpassword"
     ],
-    "android.home": "C:/Users/Isaac/AppData/Local/Android/Sdk"
+    "dart.flutterSdkPath": "C:/flutter",
+    "dart.sdkPath":"C:/flutter/bin"
 }

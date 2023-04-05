@@ -1,5 +1,5 @@
 name: lap_fitness
-description: A clone of main LAP Fitness application developed by Isaac Urman, Darrian Yang, Yehua Chen.
+description: A clone of main LAP Fitness application developed by Isaac Urman and Darrian Yang
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -30,10 +30,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   google_fonts:
   firebase_core: ^2.8.0
@@ -41,10 +37,13 @@ dependencies:
   firebase_analytics: ^10.1.6
   firebase_database: ^10.0.16
   cloud_firestore: ^4.5.0
+  intl: ^0.17.0
+
 dev_dependencies:
   flutter_launcher_icons: ^0.9.0
   flutter_test:
     sdk: flutter
+  
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
