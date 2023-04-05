@@ -73,6 +73,9 @@ flutter:
     - assets/images/post.png
     - assets/images/profile_me.png
     - assets/images/profile.png
+    - assets/images/lunges.png
+    - assets/images/push-ups.png
+    - assets/images/squats.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

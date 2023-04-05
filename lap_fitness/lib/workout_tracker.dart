@@ -4,133 +4,193 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-class WorkoutTrackerPage extends StatefulWidget {
-  const WorkoutTrackerPage({Key? key}) : super(key: key);
-
+class WorkoutTracker extends StatefulWidget {
   @override
-  _WorkoutTrackerPageState createState() => _WorkoutTrackerPageState();
+  _WorkoutTrackerState createState() => _WorkoutTrackerState();
 }
 
-class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
+class _WorkoutTrackerState extends State<WorkoutTracker> {
+  String _currentWorkout = 'Push-ups';
+  String _currentImage = 'assets/images/push-ups.png';
   int _currentSet = 1;
   int _currentRep = 1;
   int _currentSeconds = 0;
   bool _isRunning = false;
-  late Timer _timer;
-  final TextEditingController _repController = TextEditingController();
+  Timer? _timer;
+  TextEditingController _repController = TextEditingController();
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _repController.dispose();
+    super.dispose();
+  }
 
   void _startTimer() {
+    setState(() {
+      _isRunning = true;
+    });
+
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
         _currentSeconds++;
       });
     });
-    setState(() {
-      _isRunning = true;
-    });
   }
 
   void _pauseTimer() {
-    _timer.cancel();
     setState(() {
       _isRunning = false;
     });
+
+    _timer?.cancel();
   }
 
   void _resetTimer() {
-    _timer.cancel();
     setState(() {
-      _currentSet = 1;
-      _currentRep = 1;
       _currentSeconds = 0;
       _isRunning = false;
     });
+
+    _timer?.cancel();
   }
 
   void _nextSet() {
     setState(() {
       _currentSet++;
       _currentRep = 1;
-      _currentSeconds = 0;
     });
   }
 
-  void _nextRep(int reps) {
+  void _nextRep(int rep) {
     setState(() {
-      _currentRep = reps;
-      _currentSeconds = 0;
+      _currentRep = rep;
     });
   }
 
   void _setReps() {
-    // Add this function
-    setState(() {
-      _currentRep = int.tryParse(_repController.text) ?? 1;
-      _repController.text = '';
-      _currentSeconds = 0;
-    });
+    final reps = int.tryParse(_repController.text);
+
+    if (reps != null) {
+      setState(() {
+        _currentRep = reps;
+      });
+    }
+
+    _repController.clear();
   }
 
   String _formatDuration(int seconds) {
-    int minutes = seconds ~/ 60;
-    int remainingSeconds = seconds % 60;
+    final duration = Duration(seconds: seconds);
+    final minutes = duration.inMinutes;
+    final remainingSeconds = duration.inSeconds % 60;
     return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
-  }
-
-  @override
-  void dispose() {
-    // Add this override method
-    _repController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'Set $_currentSet - Rep $_currentRep',
-              style: TextStyle(fontSize: 24),
-            ),
-            SizedBox(height: 32),
-            Text(
-              _formatDuration(_currentSeconds),
-              style: TextStyle(fontSize: 48),
-            ),
-            SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: _isRunning ? _pauseTimer : _startTimer,
-                  icon: Icon(_isRunning ? Icons.pause : Icons.play_arrow),
-                  iconSize: 48,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: 'Select a workout',
                 ),
-                SizedBox(width: 32),
-                IconButton(
-                  onPressed: _resetTimer,
-                  icon: Icon(Icons.replay),
-                  iconSize: 48,
+                items: [
+                  DropdownMenuItem(
+                    value: 'push-ups',
+                    child: Text('Push-ups'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'squats',
+                    child: Text('Squats'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'lunges',
+                    child: Text('Lunges'),
+                  ),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _currentWorkout = value!;
+                    switch (value) {
+                      case 'push-ups':
+                        _currentImage = 'assets/images/push-ups.png';
+                        _currentSet = 1;
+                        _currentRep = 1;
+                        break;
+                      case 'squats':
+                        _currentImage = 'assets/images/squats.png';
+                        _currentSet = 1;
+                        _currentRep = 1;
+                        break;
+                      case 'lunges':
+                        _currentImage = 'assets/images/lunges.png';
+                        _currentSet = 1;
+                        _currentRep = 1;
+                    }
+                  });
+                },
+              ),
+              SizedBox(height: 16),
+              Image.asset(
+                _currentImage,
+                height: 200,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Set $_currentSet - Rep $_currentRep',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 24),
+              ),
+              SizedBox(height: 32),
+              Text(
+                _formatDuration(_currentSeconds),
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 48),
+              ),
+              SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      _resetTimer();
+                    },
+                    icon: Icon(Icons.refresh),
+                    tooltip: 'Reset Timer',
+                  ),
+                ],
+              ),
+              SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: _isRunning ? _pauseTimer : _startTimer,
+                child: Text(_isRunning ? 'Pause' : 'Start'),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _nextSet,
+                child: Text('Next Set'),
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: _repController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Reps',
+                  hintText: 'Enter reps for next set',
                 ),
-                SizedBox(width: 32),
-                IconButton(
-                  onPressed: _nextSet,
-                  icon: Icon(Icons.arrow_forward),
-                  iconSize: 48,
-                ),
-                SizedBox(width: 32),
-                IconButton(
-                  onPressed: () => _nextRep(_currentRep + 1),
-                  icon: Icon(Icons.arrow_upward),
-                  iconSize: 48,
-                ),
-              ],
-            ),
-          ],
+                onSubmitted: (value) {
+                  _setReps();
+                },
+              ),
+              SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );

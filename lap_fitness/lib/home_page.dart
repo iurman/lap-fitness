@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
   static final List<Map<String, dynamic>> _sections = [
     {'name': 'Feed', 'icon': Icons.rss_feed, 'page': FeedPage()},
     {'name': 'Notes', 'icon': Icons.note, 'page': NotesPage()},
-    {'name': 'Home', 'icon': Icons.home, 'page': WorkoutTrackerPage()},
+    {'name': 'Home', 'icon': Icons.home, 'page': WorkoutTracker()},
     {
       'name': 'Meal Tracking',
       'icon': Icons.restaurant_menu,
