@@ -1,8 +1,11 @@
 // ignore_for_file: prefer_const_constructors
 // ignore_for_file: prefer_const_literals_to_create_immutables
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:openfoodfacts/openfoodfacts.dart';
+import 'dart:html';
 
 class MealTrackingPage extends StatefulWidget {
   @override
@@ -106,7 +109,7 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
     );
   }
 
-  void submitMealForm() async {
+  Future<void> submitMealForm() async {
     // Get the form values
     final mealName = mealNameController.text;
     final mealType = mealTypeController.text;
@@ -120,15 +123,40 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
     // Get the current user ID
     final userId = FirebaseAuth.instance.currentUser!.uid;
 
-    // Save the meal to Firestore
-    await mealsCollection.add({
-      'name': mealName,
-      'type': mealType,
-      'calories': calorieCount,
-      'userId': userId,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
+    // Call the Open Food Facts API to search for the product
+    /*final configuration = ProductQueryConfiguration(
+      barcode: mealName,
+      fields: [ProductField.IMAGE_FRONT_URL, ProductField.NUTRIMENTS],
+      language: OpenFoodFactsLanguage.ENGLISH,
+      page: 1,
+      pageSize: 1,
+    );
+    final response = await OpenFoodAPIClient.getProductV3(configuration);
 
+    if (response.status == 1 && response.product != null) {
+      final product = response.product!;
+      final imageUrl = product.imageFrontUrl ?? '';
+      final nutrients = product.nutriments ?? {};
+
+      await mealsCollection.add({
+        'name': mealName,
+        'type': mealType,
+        'calories': calorieCount,
+        'userId': userId,
+        'timestamp': FieldValue.serverTimestamp(),
+        'imageUrl': imageUrl,
+        'nutrients': nutrients,
+      });
+    } else {
+      await mealsCollection.add({
+        'name': mealName,
+        'type': mealType,
+        'calories': calorieCount,
+        'userId': userId,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    }
+*/
     // Clear the form values
     mealNameController.clear();
     mealTypeController.clear();

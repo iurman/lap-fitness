@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'main_page.dart';
 import 'firebase_options.dart';
 import 'themes.dart';
+import 'package:openfoodfacts/openfoodfacts.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

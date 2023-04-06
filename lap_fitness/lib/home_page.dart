@@ -69,9 +69,11 @@ class _HomePageState extends State<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 16),
-                Text(
-                  'Calories for the day',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                Center(
+                  child: Text(
+                    'Calories for the day',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 SizedBox(height: 16),
                 Container(
@@ -88,9 +90,11 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 SizedBox(height: 32),
-                Text(
-                  'Workout of the day',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                Center(
+                  child: Text(
+                    'Workout of the day',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 SizedBox(height: 16),
                 GestureDetector(
