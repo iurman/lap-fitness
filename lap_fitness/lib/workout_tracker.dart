@@ -90,6 +90,16 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Workout Tracker'),
+        backgroundColor: Color.fromARGB(255, 138, 104, 35),
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: Icon(Icons.arrow_back),
+        ),
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
