@@ -44,11 +44,20 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 138, 104, 35),
-        title: Text(_sections[_selectedIndex]['name']),
-        automaticallyImplyLeading: false, // hide back button
-        actions: _selectedIndex == 2 // hide back button
+        title: Text(
+          _sections[_selectedIndex]['name'],
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+        actions: _selectedIndex == 2
             ? [
                 IconButton(
                   onPressed: () {
@@ -59,87 +68,109 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   },
-                  icon: Icon(Icons.settings),
+                  icon: Icon(
+                    Icons.settings,
+                    color: Colors.white,
+                  ),
                 ),
               ]
             : null,
       ),
       body: _selectedIndex == 2
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 16),
-                Center(
-                  child: Text(
+          ? Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
                     'Calories for the day',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 138, 104, 35),
+                    ),
                   ),
-                ),
-                SizedBox(height: 16),
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '1800', // Replace this with the actual number of calories
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                SizedBox(height: 32),
-                Center(
-                  child: Text(
-                    'Workout of the day',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                SizedBox(height: 16),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            WorkoutTracker(), // Replace this with the actual workout page
-                      ),
-                    );
-                  },
-                  child: Container(
+                  SizedBox(height: 16),
+                  Container(
                     width: double.infinity,
-                    padding: EdgeInsets.all(16),
+                    padding: EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
+                      color: Color.fromARGB(255, 246, 246, 246),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Upper Body Workout', // Replace this with the actual workout name
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          '3 sets of 10 reps', // Replace this with the actual workout details
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ],
+                    child: Text(
+                      '1800',
+                      style: TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 0, 0, 0),
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 32),
+                  Text(
+                    'Workout of the day',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 138, 104, 35),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => WorkoutTracker(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Color.fromARGB(255, 246, 246, 246),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Upper Body Workout',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 0, 0, 0),
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            '3 sets of 10 reps',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Color.fromARGB(255, 138, 104, 35),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             )
           : _sections[_selectedIndex]['page'],
       bottomNavigationBar: BottomNavigationBar(
         items: _sections
             .map(
               (section) => BottomNavigationBarItem(
-                icon: Icon(section['icon']),
+                icon: Icon(
+                  section['icon'],
+                  color: Color.fromARGB(255, 138, 104, 35),
+                ),
                 label: section['name'],
+                backgroundColor: Colors.white,
               ),
             )
             .toList(),
