@@ -57,9 +57,13 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
                 ),
                 SizedBox(height: 16.0),
                 ElevatedButton(
-                  onPressed: submitMealForm,
-                  child: Text('Add meal'),
-                ),
+                    onPressed: submitMealForm,
+                    child: Text('Add meal'),
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                        Color.fromARGB(255, 138, 104, 35),
+                      ),
+                    )),
               ],
             ),
           ),

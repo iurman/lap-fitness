@@ -92,6 +92,7 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Workout Tracker'),
+        centerTitle: true,
         backgroundColor: Color.fromARGB(255, 138, 104, 35),
         leading: IconButton(
           onPressed: () {
@@ -180,11 +181,21 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
               ElevatedButton(
                 onPressed: _isRunning ? _pauseTimer : _startTimer,
                 child: Text(_isRunning ? 'Pause' : 'Start'),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(
+                    Color.fromARGB(255, 138, 104, 35),
+                  ),
+                ),
               ),
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _nextSet,
                 child: Text('Next Set'),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(
+                    Color.fromARGB(255, 138, 104, 35),
+                  ),
+                ),
               ),
               SizedBox(height: 16),
               TextField(
