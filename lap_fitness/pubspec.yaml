@@ -78,6 +78,7 @@ flutter:
     - assets/images/lunges.png
     - assets/images/push-ups.png
     - assets/images/squats.png
+    - assets/images/water_bottle.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

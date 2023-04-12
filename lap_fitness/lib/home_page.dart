@@ -12,6 +12,7 @@ import 'home.dart';
 import 'settings_page.dart';
 import 'package:lap_fitness/workout_tracker.dart';
 import 'package:lap_fitness/loading_page.dart';
+import 'package:lap_fitness/water_tracker.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -83,12 +84,14 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Calories for the day',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 138, 104, 35),
+                  Center(
+                    child: Text(
+                      'Calories for the day',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 138, 104, 35),
+                      ),
                     ),
                   ),
                   SizedBox(height: 16),
@@ -120,12 +123,14 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   SizedBox(height: 32),
-                  Text(
-                    'Workout of the day',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 138, 104, 35),
+                  Center(
+                    child: Text(
+                      'Workout of the day',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 138, 104, 35),
+                      ),
                     ),
                   ),
                   SizedBox(height: 16),
@@ -148,20 +153,79 @@ class _HomePageState extends State<HomePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Upper Body Workout',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(255, 0, 0, 0),
+                          Center(
+                            child: Text(
+                              'Upper Body Workout',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Color.fromARGB(255, 0, 0, 0),
+                              ),
                             ),
                           ),
                           SizedBox(height: 8),
-                          Text(
-                            '3 sets of 10 reps',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Color.fromARGB(255, 138, 104, 35),
+                          Center(
+                            child: Text(
+                              '3 sets of 10 reps',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Color.fromARGB(255, 138, 104, 35),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 32),
+                  Center(
+                    child: Text(
+                      'Water Intake',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 138, 104, 35),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => WaterTracker(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Color.fromARGB(255, 246, 246, 246),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(
+                            child: Text(
+                              'How much did you drink?',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Color.fromARGB(255, 0, 0, 0),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Center(
+                            child: Text(
+                              'Tap Here',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Color.fromARGB(255, 138, 104, 35),
+                              ),
                             ),
                           ),
                         ],
