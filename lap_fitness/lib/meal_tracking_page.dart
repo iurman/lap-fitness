@@ -168,23 +168,27 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
                   keyboardType: TextInputType.number,
                 ),
                 SizedBox(height: 16.0),
-                ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                      Color.fromARGB(255, 138, 104, 35),
+                Center(
+                  child: ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                        Color.fromARGB(255, 138, 104, 35),
+                      ),
                     ),
+                    onPressed: submitMealForm,
+                    child: Text('Add meal'),
                   ),
-                  onPressed: submitMealForm,
-                  child: Text('Add meal'),
                 ),
                 SizedBox(height: 16.0),
                 // show the total calories, protein, fat, and carbs for the day
-                Text(
-                  'Total Calories: ${totalCalories.toStringAsFixed(2)} cal\n'
-                  'Total Protein: ${totalProtein.toStringAsFixed(2)} g\n'
-                  'Total Fat: ${totalFat.toStringAsFixed(2)} g\n'
-                  'Total Carbs: ${totalCarbs.toStringAsFixed(2)} g',
-                  style: Theme.of(context).textTheme.titleMedium,
+                Center(
+                  child: Text(
+                    'Total Calories: ${totalCalories.toStringAsFixed(2)} cal\n'
+                    'Total Protein: ${totalProtein.toStringAsFixed(2)} g\n'
+                    'Total Fat: ${totalFat.toStringAsFixed(2)} g\n'
+                    'Total Carbs: ${totalCarbs.toStringAsFixed(2)} g',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ),
               ],
             ),
