@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lap_fitness/profile_settings_page.dart';
+import 'package:lap_fitness/user_info.dart';
 import 'feed_page.dart';
 import 'note_page.dart';
 import 'meal_tracking_page.dart';
@@ -85,6 +86,7 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  SizedBox(height: 40),
                   Center(
                     child: Text(
                       'Calories for the day',
@@ -101,7 +103,7 @@ class _HomePageState extends State<HomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ProfileSettingsPage(),
+                          builder: (context) => UserInfoPage(),
                         ),
                       );
                     },
@@ -113,9 +115,9 @@ class _HomePageState extends State<HomePage> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
-                        '1800',
+                        'Press Here!',
                         style: TextStyle(
-                          fontSize: 48,
+                          fontSize: 30,
                           fontWeight: FontWeight.bold,
                           color: Color.fromARGB(255, 0, 0, 0),
                         ),
@@ -126,7 +128,7 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(height: 32),
                   Center(
                     child: Text(
-                      'Workout of the day',
+                      'Ready to Workout?',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -156,7 +158,7 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           Center(
                             child: Text(
-                              'Upper Body Workout',
+                              'Press here!',
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
@@ -167,7 +169,7 @@ class _HomePageState extends State<HomePage> {
                           SizedBox(height: 8),
                           Center(
                             child: Text(
-                              '3 sets of 10 reps',
+                              "Let's kill it today",
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Color.fromARGB(255, 138, 104, 35),

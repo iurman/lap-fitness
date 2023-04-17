@@ -171,7 +171,7 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
                 SizedBox(height: 16.0),
                 // show the total calories, protein, fat, and carbs for the day
                 Text(
-                  'Total Calories: ${totalCalories.toStringAsFixed(2)} kcal\n'
+                  'Total Calories: ${totalCalories.toStringAsFixed(2)} cal\n'
                   'Total Protein: ${totalProtein.toStringAsFixed(2)} g\n'
                   'Total Fat: ${totalFat.toStringAsFixed(2)} g\n'
                   'Total Carbs: ${totalCarbs.toStringAsFixed(2)} g',

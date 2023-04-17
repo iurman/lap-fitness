@@ -4,6 +4,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lap_fitness/login_page.dart';
+import 'package:lap_fitness/user_info.dart';
 import 'profile_settings_page.dart';
 import 'privacy_settings_page.dart';
 import 'account_settings_page.dart';
@@ -25,7 +26,7 @@ class SettingsPage extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ProfileSettingsPage()),
+                MaterialPageRoute(builder: (context) => UserInfoPage()),
               );
             },
           ),
