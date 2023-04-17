@@ -80,6 +80,14 @@ class _RegisterPageState extends State<RegisterPage> {
           );
         } else if (e.code == 'email-already-in-use') {
           print('The account already exists for that email.');
+          showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                content: Text('The account already exists for that email.'),
+              );
+            },
+          );
         }
       } catch (e) {
         print(e);
