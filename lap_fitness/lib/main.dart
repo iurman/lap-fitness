@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'main_page.dart';
 import 'firebase_options.dart';
@@ -12,6 +13,7 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    FirebaseDatabase.instance.setPersistenceEnabled(true);
   } catch (e) {
     // ignore: avoid_print
     print('Error initializing Firebase: $e');

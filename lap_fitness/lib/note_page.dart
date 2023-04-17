@@ -2,8 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:intl/intl.dart';
 
 class NotesPage extends StatefulWidget {
+  final DateTime? selectedDate;
+  final bool showAppBar;
+  final bool showAllNotes;
+
+  NotesPage(
+      {this.selectedDate, this.showAppBar = false, this.showAllNotes = true});
+
   @override
   _NotesPageState createState() => _NotesPageState();
 }
@@ -22,8 +30,15 @@ class _NotesPageState extends State<NotesPage> {
         .child(user!.uid)
         .child("notes")
         .push()
-        .set({"name": "", "content": ""});
-    setState(() {});
+        .set({
+      "name": "",
+      "content": "",
+      "created_at": DateTime.now().toIso8601String(),
+      "selected_date": widget.selectedDate?.toIso8601String() ?? ''
+    });
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   // Function to update the name of a note in Firebase
@@ -34,7 +49,9 @@ class _NotesPageState extends State<NotesPage> {
         .child("notes")
         .child(key)
         .update({"name": name});
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   // Function to update the content of a note in Firebase
@@ -56,37 +73,73 @@ class _NotesPageState extends State<NotesPage> {
         .child("notes")
         .child(key)
         .remove();
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
+
+  bool _listenerSet = false;
 
   @override
   void initState() {
     super.initState();
 
-    // Attach a listener to the "notes" node in Firebase to update the notesList
-    databaseReference
-        .child("users")
-        .child(user!.uid)
-        .child("notes")
-        .onValue
-        .listen((event) {
-      notesList.clear();
-      if (event.snapshot.value != null) {
-        Map<dynamic, dynamic> notesMap =
-            event.snapshot.value as Map<dynamic, dynamic>;
-        ;
-        notesMap.forEach((key, value) {
-          notesList.add(
-              {"key": key, "name": value["name"], "content": value["content"]});
+    FirebaseAuth.instance.authStateChanges().listen((User? firebaseUser) {
+      if (firebaseUser != null && !_listenerSet) {
+        _listenerSet = true;
+        user = firebaseUser;
+
+        Query query =
+            databaseReference.child("users").child(user!.uid).child("notes");
+
+        if (!widget.showAllNotes && widget.selectedDate != null) {
+          String selectedDateStr = widget.selectedDate!.toIso8601String();
+          query = query
+              .orderByChild("selected_date")
+              .startAt(selectedDateStr)
+              .endAt(widget.selectedDate!
+                  .add(Duration(days: 1))
+                  .toIso8601String());
+        }
+
+        query.onValue.listen((event) {
+          notesList.clear();
+          if (event.snapshot.value != null) {
+            Map<dynamic, dynamic> notesMap =
+                event.snapshot.value as Map<dynamic, dynamic>;
+            notesMap.forEach((key, value) {
+              notesList.add({
+                "key": key,
+                "name": value["name"],
+                "content": value["content"],
+                "created_at": value["created_at"],
+              });
+            });
+          }
+          if (mounted) {
+            setState(() {});
+          }
         });
       }
-      setState(() {});
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: widget.showAppBar
+          ? AppBar(
+              backgroundColor: Color.fromARGB(255, 138, 104, 35),
+              title: Text(
+                  "Notes for ${DateFormat.yMMMd().format(widget.selectedDate ?? DateTime.now())}"),
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+            )
+          : null,
       body: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
@@ -132,6 +185,17 @@ class _NotesPageState extends State<NotesPage> {
                       updateNoteName(notesList[index]["key"], value),
                 ),
                 SizedBox(height: 12),
+                // Creation date of the note
+                Text(
+                  DateFormat.yMd()
+                      .add_jm()
+                      .format(DateTime.parse(notesList[index]["created_at"])),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+                SizedBox(height: 12),
                 // Editable content of the note
                 Expanded(
                   child: TextFormField(
@@ -156,11 +220,12 @@ class _NotesPageState extends State<NotesPage> {
                       onPressed: () {
                         // Delete note from database
                         deleteNote(notesList[index]["key"]);
-
-                        // Remove note from notesList
-                        setState(() {
-                          notesList.removeAt(index);
-                        });
+                        if (mounted) {
+                          // Remove note from notesList
+                          setState(() {
+                            notesList.removeAt(index);
+                          });
+                        }
                       },
                     ),
                   ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'note_page.dart';
 
 class CalendarPage extends StatefulWidget {
   @override
@@ -59,9 +60,24 @@ class _CalendarPageState extends State<CalendarPage> {
                   return Container();
                 } else {
                   return GestureDetector(
+                    // Update the onTap function in GridView.builder
                     onTap: () {
-                      // Do something when the user taps a day
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => NotesPage(
+                            selectedDate: DateTime(
+                              _selectedDate.year,
+                              _selectedDate.month,
+                              index - _selectedDate.weekday + 2,
+                            ),
+                            showAppBar: true,
+                            showAllNotes: false,
+                          ),
+                        ),
+                      );
                     },
+
                     child: Container(
                       decoration: BoxDecoration(
                           color: Colors.grey[200],
