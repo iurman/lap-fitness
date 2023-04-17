@@ -36,14 +36,10 @@ class _WaterTrackerState extends State<WaterTracker> {
               height: 200,
               child: Stack(
                 children: [
-                  Image.asset(
-                    'assets/images/water_bottle.png',
-                    fit: BoxFit.cover,
-                  ),
-                  FractionallySizedBox(
-                    heightFactor: _waterIntake / 10,
-                    child: Container(
-                      color: Colors.blue,
+                  Center(
+                    child: Image.asset(
+                      'assets/images/water_bottle.png',
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ],
