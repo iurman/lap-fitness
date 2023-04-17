@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, use_build_context_synchronously, avoid_print
 
 // ignore: unused_import
 import 'package:firebase_auth/firebase_auth.dart';

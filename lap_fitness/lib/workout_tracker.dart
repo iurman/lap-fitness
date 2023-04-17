@@ -1,4 +1,4 @@
-// ignore_for_file: use_key_in_widget_constructors
+// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, unused_field, prefer_final_fields, prefer_const_constructors, unused_element, prefer_const_literals_to_create_immutables, sort_child_properties_last
 // ignore_for_file: unused_import
 
 import 'dart:async';

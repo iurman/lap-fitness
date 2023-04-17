@@ -1,20 +1,15 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:lap_fitness/profile_settings_page.dart';
 import 'package:lap_fitness/user_info.dart';
 import 'feed_page.dart';
 import 'note_page.dart';
 import 'meal_tracking_page.dart';
 import 'calendar_page.dart';
-import 'home.dart';
 import 'settings_page.dart';
 import 'package:lap_fitness/workout_tracker.dart';
-import 'package:lap_fitness/loading_page.dart';
 import 'package:lap_fitness/water_tracker.dart';
-import 'package:lap_fitness/meal_tracking_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);

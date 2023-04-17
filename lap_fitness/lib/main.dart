@@ -4,8 +4,6 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'main_page.dart';
 import 'firebase_options.dart';
-import 'themes.dart';
-import 'package:openfoodfacts/openfoodfacts.dart';
 
 final customThemeData = ThemeData(
   primaryColor: Color.fromARGB(255, 138, 104, 35),
