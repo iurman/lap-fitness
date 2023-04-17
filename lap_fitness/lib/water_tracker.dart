@@ -26,6 +26,7 @@ class _WaterTrackerState extends State<WaterTracker> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color.fromARGB(255, 138, 104, 35),
         title: Text('Water Intake Tracker'),
       ),
       body: Center(

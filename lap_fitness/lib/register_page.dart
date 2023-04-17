@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:lap_fitness/home_page.dart';
 import 'package:lap_fitness/main_page.dart';
 import 'package:lap_fitness/loading_page.dart';
+import 'package:lap_fitness/user_info.dart';
 
 class RegisterPage extends StatefulWidget {
   final VoidCallback showLoginPage;
@@ -53,7 +54,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 email: _emailController.text.trim(),
                 password: _passwordController.text.trim());
         if (userCredential.user != null) {
-          // Navigate to the home page after successful registration
+          // Navigate to the user info page after successful registration
           await Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -62,15 +63,6 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
           );
-
-          Timer(Duration(seconds: 2), () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomePage(),
-              ),
-            );
-          });
         }
       } on FirebaseAuthException catch (e) {
         setState(() {
@@ -96,6 +88,18 @@ class _RegisterPageState extends State<RegisterPage> {
           isLoading = false;
         });
       }
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: Text('The passwords do not match.'),
+          );
+        },
+      );
     }
   }
 
