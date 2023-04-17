@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, unused_field, deprecated_member_use, prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';

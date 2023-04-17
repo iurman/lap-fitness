@@ -1,12 +1,9 @@
+// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, deprecated_member_use, duplicate_ignore, prefer_const_constructors
+
 import 'dart:async';
-import 'dart:html';
-import 'dart:ui';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/material.dart';
 
 class MealTrackingPage extends StatefulWidget {
   @override
@@ -109,7 +106,7 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
     double totalCarbs = 0;
 
     // calculate the total calories, protein, fat, and carbs for the day
-    mealJournal.forEach((meal) {
+    for (var meal in mealJournal) {
       final protein = meal['protein'];
       final fat = meal['fat'];
       final carbs = meal['carbs'];
@@ -122,7 +119,7 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
       totalProtein += protein;
       totalFat += fat;
       totalCarbs += carbs;
-    });
+    }
 
     return Scaffold(
       body: Column(
