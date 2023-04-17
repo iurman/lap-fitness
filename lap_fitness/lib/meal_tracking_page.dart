@@ -19,8 +19,7 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
   final fatController = TextEditingController();
   final carbsController = TextEditingController();
 
-  // Reference to the meals node in Firebase Realtime Database
-  final mealsReference = FirebaseDatabase.instance.reference().child('meals');
+  late DatabaseReference mealsReference;
 
   List<Map<String, dynamic>> mealJournal = [];
 
@@ -29,6 +28,16 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
   @override
   void initState() {
     super.initState();
+
+    // Get the current user ID
+    final currentUserID = FirebaseAuth.instance.currentUser!.uid;
+
+    // Update the meals reference to include the user ID
+    // ignore: deprecated_member_use
+    mealsReference = FirebaseDatabase.instance
+        .reference()
+        .child('meals')
+        .child(currentUserID);
 
     // Listen to changes in the meals node in Firebase Realtime Database
     _streamSubscription = mealsReference.onValue.listen((event) {
