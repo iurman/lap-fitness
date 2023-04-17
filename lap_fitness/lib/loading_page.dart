@@ -48,8 +48,8 @@ class _LoadingPageState extends State<LoadingPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-              builder: (context) =>
-                  UserInfoPage(calories: widget.welcomeMessage)),
+              builder: (context) => UserInfoPage(
+                  calories: widget.welcomeMessage, showBackButton: false)),
         );
       }
     }).catchError((error) {

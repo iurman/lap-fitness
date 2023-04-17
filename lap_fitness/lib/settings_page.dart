@@ -26,7 +26,10 @@ class SettingsPage extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => UserInfoPage()),
+                MaterialPageRoute(
+                  builder: (context) =>
+                      UserInfoPage(calories: '0', showBackButton: true),
+                ),
               );
             },
           ),

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:lap_fitness/home_page.dart';
 
 class UserInfoPage extends StatefulWidget {
-  final String? calories; // Add a new parameter to accept the calorie amount
+  final String? calories;
+  final bool showBackButton; // Add a new parameter to control the back button
 
-  const UserInfoPage({Key? key, this.calories}) : super(key: key);
+  const UserInfoPage({Key? key, this.calories, this.showBackButton = false})
+      : super(key: key);
 
   @override
   _UserInfoPageState createState() => _UserInfoPageState();
@@ -17,6 +20,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
   final _calorieController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late final _caloriesController = TextEditingController(
       text: widget
           .calories); // Assign the passed calorie amount to a new controller
@@ -86,56 +90,72 @@ class _UserInfoPageState extends State<UserInfoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 138, 104, 35),
-        title: Text('User Info'),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Age'),
-            TextFormField(
-              controller: _ageController,
-              keyboardType: TextInputType.number,
-            ),
-            SizedBox(height: 16),
-            Text('Gender'),
-            TextFormField(
-              controller: _genderController,
-            ),
-            SizedBox(height: 16),
-            Text('Weight'),
-            TextFormField(
-              controller: _weightController,
-              keyboardType: TextInputType.number,
-            ),
-            SizedBox(height: 16),
-            Text('Height'),
-            TextFormField(
-              controller: _heightController,
-              keyboardType: TextInputType.number,
-            ),
-            SizedBox(height: 16),
-            Text('Target Calories'),
-            TextFormField(
-              controller: _calorieController,
-              keyboardType: TextInputType.number,
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all<Color>(
-                  Color.fromARGB(255, 138, 104, 35),
-                ),
-              ),
-              onPressed: _saveUserInfo,
-              child: Text('Save'),
-            ),
-          ],
+        appBar: AppBar(
+          backgroundColor: Color.fromARGB(255, 138, 104, 35),
+          title: Text('User Info'),
+          automaticallyImplyLeading:
+              widget.showBackButton, // Control the back button visibility
         ),
-      ),
-    );
+        body: Padding(
+          padding: EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Age'),
+                TextFormField(
+                  controller: _ageController,
+                  keyboardType: TextInputType.number,
+                ),
+                SizedBox(height: 16),
+                Text('Gender'),
+                TextFormField(
+                  controller: _genderController,
+                ),
+                SizedBox(height: 16),
+                Text('Weight'),
+                TextFormField(
+                  controller: _weightController,
+                  keyboardType: TextInputType.number,
+                ),
+                SizedBox(height: 16),
+                Text('Height'),
+                TextFormField(
+                  controller: _heightController,
+                  keyboardType: TextInputType.number,
+                ),
+                SizedBox(height: 16),
+                Text('Target Calories'),
+                TextFormField(
+                  controller: _calorieController,
+                  keyboardType: TextInputType.number,
+                ),
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      // Save the user's information
+                      _saveUserInfo();
+
+                      // Navigate to the Home page
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => HomePage()),
+                        (Route<dynamic> route) => false,
+                      );
+                    }
+                  },
+                  child: Text('Save'),
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      Color.fromARGB(255, 138, 104, 35),
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        ));
   }
 }
