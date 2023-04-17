@@ -13,6 +13,7 @@ import 'settings_page.dart';
 import 'package:lap_fitness/workout_tracker.dart';
 import 'package:lap_fitness/loading_page.dart';
 import 'package:lap_fitness/water_tracker.dart';
+import 'package:lap_fitness/meal_tracking_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
