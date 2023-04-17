@@ -69,6 +69,10 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
     }
   }
 
+  void deleteMeal(String mealKey) async {
+    await mealsReference.child(mealKey).remove();
+  }
+
   void submitMealForm() async {
     // Get the form values
     final mealName = mealNameController.text;
@@ -188,17 +192,30 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
           Expanded(
             child: ListView.builder(
               itemCount: mealJournal.length,
-              itemBuilder: (context, index) {
+              itemBuilder: (BuildContext context, int index) {
                 final meal = mealJournal[index];
-                final name = meal['name'];
-                final protein = meal['protein'];
-                final fat = meal['fat'];
-                final carbs = meal['carbs'];
-
-                return ListTile(
-                  title: Text(name),
-                  subtitle: Text(
-                    'Protein: $protein g, Fat: $fat g, Carbs: $carbs g',
+                return Dismissible(
+                  key: Key(meal['key']),
+                  onDismissed: (direction) {
+                    deleteMeal(meal['key']);
+                    setState(() {
+                      mealJournal.removeAt(index);
+                    });
+                  },
+                  child: Card(
+                    child: ListTile(
+                      title: Text(meal['name']),
+                      subtitle: Text(
+                        '${meal['protein']}g P | ${meal['fat']}g F | ${meal['carbs']}g C',
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () {
+                          // Delete the meal from Firebase Realtime Database
+                          mealsReference.child(meal['key']).remove();
+                        },
+                      ),
+                    ),
                   ),
                 );
               },
