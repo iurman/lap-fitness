@@ -118,14 +118,29 @@ class _HomePageState extends State<HomePage> {
                         color: Color.fromARGB(255, 246, 246, 246),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Text(
-                        'Press Here!',
-                        style: TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 0, 0, 0),
-                        ),
-                        textAlign: TextAlign.center,
+                      child: Column(
+                        children: [
+                          Text(
+                            'New or want to change user info?',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 0, 0, 0),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 16),
+                          Center(
+                            child: Text(
+                              "Press Here!",
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Color.fromARGB(255, 138, 104, 35),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
