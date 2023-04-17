@@ -25,7 +25,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
 
   Future<void> _changeEmail() async {
     // Validate the email address
-    if (!_formKey.currentState!.validate()) {
+    if (!_emailFormKey.currentState!.validate()) {
       return;
     }
 
@@ -50,7 +50,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
 
   Future<void> _changePassword() async {
     // Validate the password
-    if (!_formKey.currentState!.validate()) {
+    if (!_passwordFormKey.currentState!.validate()) {
       return;
     }
 
