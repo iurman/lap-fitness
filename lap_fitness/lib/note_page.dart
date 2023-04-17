@@ -2,8 +2,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:intl/intl.dart';
 
 class NotesPage extends StatefulWidget {
+  final DateTime selectedDate;
+  final bool showAppBar;
+
+  NotesPage({required this.selectedDate, this.showAppBar = false});
+
   @override
   _NotesPageState createState() => _NotesPageState();
 }
@@ -22,7 +28,12 @@ class _NotesPageState extends State<NotesPage> {
         .child(user!.uid)
         .child("notes")
         .push()
-        .set({"name": "", "content": ""});
+        .set({
+      "name": "",
+      "content": "",
+      "created_at": DateTime.now().toIso8601String(),
+      "selected_date": widget.selectedDate.toIso8601String()
+    });
     setState(() {});
   }
 
@@ -68,6 +79,9 @@ class _NotesPageState extends State<NotesPage> {
         .child("users")
         .child(user!.uid)
         .child("notes")
+        .orderByChild("created_at")
+        .startAt(widget.selectedDate.toIso8601String())
+        .endAt(widget.selectedDate.add(Duration(days: 1)).toIso8601String())
         .onValue
         .listen((event) {
       notesList.clear();
@@ -76,8 +90,12 @@ class _NotesPageState extends State<NotesPage> {
             event.snapshot.value as Map<dynamic, dynamic>;
         ;
         notesMap.forEach((key, value) {
-          notesList.add(
-              {"key": key, "name": value["name"], "content": value["content"]});
+          notesList.add({
+            "key": key,
+            "name": value["name"],
+            "content": value["content"],
+            "created_at": value["created_at"],
+          });
         });
       }
       setState(() {});
@@ -87,6 +105,19 @@ class _NotesPageState extends State<NotesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: widget.showAppBar
+          ? AppBar(
+              backgroundColor: Color.fromARGB(255, 138, 104, 35),
+              title: Text(
+                  "Notes for ${DateFormat.yMMMd().format(widget.selectedDate)}"),
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+            )
+          : null,
       body: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
@@ -130,6 +161,17 @@ class _NotesPageState extends State<NotesPage> {
                   ),
                   onChanged: (value) =>
                       updateNoteName(notesList[index]["key"], value),
+                ),
+                SizedBox(height: 12),
+                // Creation date of the note
+                Text(
+                  DateFormat.yMd()
+                      .add_jm()
+                      .format(DateTime.parse(notesList[index]["created_at"])),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
                 ),
                 SizedBox(height: 12),
                 // Editable content of the note
