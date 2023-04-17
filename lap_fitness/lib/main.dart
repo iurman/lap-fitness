@@ -7,6 +7,10 @@ import 'firebase_options.dart';
 import 'themes.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
 
+final customThemeData = ThemeData(
+  primaryColor: Color.fromARGB(255, 138, 104, 35),
+);
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
@@ -28,6 +32,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: customThemeData,
       home: MainPage(),
     );
   }
