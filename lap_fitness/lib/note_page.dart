@@ -5,10 +5,12 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:intl/intl.dart';
 
 class NotesPage extends StatefulWidget {
-  final DateTime selectedDate;
+  final DateTime? selectedDate;
   final bool showAppBar;
+  final bool showAllNotes;
 
-  NotesPage({required this.selectedDate, this.showAppBar = false});
+  NotesPage(
+      {this.selectedDate, this.showAppBar = false, this.showAllNotes = true});
 
   @override
   _NotesPageState createState() => _NotesPageState();
@@ -32,9 +34,11 @@ class _NotesPageState extends State<NotesPage> {
       "name": "",
       "content": "",
       "created_at": DateTime.now().toIso8601String(),
-      "selected_date": widget.selectedDate.toIso8601String()
+      "selected_date": widget.selectedDate?.toIso8601String() ?? ''
     });
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   // Function to update the name of a note in Firebase
@@ -45,7 +49,9 @@ class _NotesPageState extends State<NotesPage> {
         .child("notes")
         .child(key)
         .update({"name": name});
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   // Function to update the content of a note in Firebase
@@ -67,38 +73,54 @@ class _NotesPageState extends State<NotesPage> {
         .child("notes")
         .child(key)
         .remove();
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
+
+  bool _listenerSet = false;
 
   @override
   void initState() {
     super.initState();
 
-    // Attach a listener to the "notes" node in Firebase to update the notesList
-    databaseReference
-        .child("users")
-        .child(user!.uid)
-        .child("notes")
-        .orderByChild("created_at")
-        .startAt(widget.selectedDate.toIso8601String())
-        .endAt(widget.selectedDate.add(Duration(days: 1)).toIso8601String())
-        .onValue
-        .listen((event) {
-      notesList.clear();
-      if (event.snapshot.value != null) {
-        Map<dynamic, dynamic> notesMap =
-            event.snapshot.value as Map<dynamic, dynamic>;
-        ;
-        notesMap.forEach((key, value) {
-          notesList.add({
-            "key": key,
-            "name": value["name"],
-            "content": value["content"],
-            "created_at": value["created_at"],
-          });
+    FirebaseAuth.instance.authStateChanges().listen((User? firebaseUser) {
+      if (firebaseUser != null && !_listenerSet) {
+        _listenerSet = true;
+        user = firebaseUser;
+
+        Query query =
+            databaseReference.child("users").child(user!.uid).child("notes");
+
+        if (!widget.showAllNotes && widget.selectedDate != null) {
+          String selectedDateStr = widget.selectedDate!.toIso8601String();
+          query = query
+              .orderByChild("selected_date")
+              .startAt(selectedDateStr)
+              .endAt(widget.selectedDate!
+                  .add(Duration(days: 1))
+                  .toIso8601String());
+        }
+
+        query.onValue.listen((event) {
+          notesList.clear();
+          if (event.snapshot.value != null) {
+            Map<dynamic, dynamic> notesMap =
+                event.snapshot.value as Map<dynamic, dynamic>;
+            notesMap.forEach((key, value) {
+              notesList.add({
+                "key": key,
+                "name": value["name"],
+                "content": value["content"],
+                "created_at": value["created_at"],
+              });
+            });
+          }
+          if (mounted) {
+            setState(() {});
+          }
         });
       }
-      setState(() {});
     });
   }
 
@@ -109,7 +131,7 @@ class _NotesPageState extends State<NotesPage> {
           ? AppBar(
               backgroundColor: Color.fromARGB(255, 138, 104, 35),
               title: Text(
-                  "Notes for ${DateFormat.yMMMd().format(widget.selectedDate)}"),
+                  "Notes for ${DateFormat.yMMMd().format(widget.selectedDate ?? DateTime.now())}"),
               leading: IconButton(
                 icon: Icon(Icons.arrow_back),
                 onPressed: () {
@@ -198,11 +220,12 @@ class _NotesPageState extends State<NotesPage> {
                       onPressed: () {
                         // Delete note from database
                         deleteNote(notesList[index]["key"]);
-
-                        // Remove note from notesList
-                        setState(() {
-                          notesList.removeAt(index);
-                        });
+                        if (mounted) {
+                          // Remove note from notesList
+                          setState(() {
+                            notesList.removeAt(index);
+                          });
+                        }
                       },
                     ),
                   ],

@@ -60,6 +60,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   return Container();
                 } else {
                   return GestureDetector(
+                    // Update the onTap function in GridView.builder
                     onTap: () {
                       Navigator.push(
                         context,
@@ -71,10 +72,12 @@ class _CalendarPageState extends State<CalendarPage> {
                               index - _selectedDate.weekday + 2,
                             ),
                             showAppBar: true,
+                            showAllNotes: false,
                           ),
                         ),
                       );
                     },
+
                     child: Container(
                       decoration: BoxDecoration(
                           color: Colors.grey[200],
