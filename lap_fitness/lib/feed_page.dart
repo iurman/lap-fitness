@@ -6,6 +6,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart'; // Import the uuid library
+import 'package:collection/collection.dart';
 
 class FeedPage extends StatefulWidget {
   @override
@@ -54,7 +55,7 @@ class _FeedPageState extends State<FeedPage> {
           _feedData.add(data.cast<String, dynamic>());
         });
         // Scroll to the most recent post after loading all the posts
-        WidgetsBinding.instance!.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
           _scrollController.animateTo(
             _scrollController.position.maxScrollExtent,
             duration: Duration(milliseconds: 300),
@@ -85,7 +86,9 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   void _addPost(String body, String userId, String postId) {
+    DatabaseReference newPostRef = _database.push();
     Map<String, dynamic> newPost = {
+      'key': newPostRef.key, // Store the Firebase-generated key
       'userId': userId,
       'postId': postId,
       'body': body,
@@ -93,12 +96,8 @@ class _FeedPageState extends State<FeedPage> {
       'comments': [],
     };
 
-    // Save new post to Firebase Realtime Database
-    DatabaseReference newPostRef = _database.push();
     newPostRef.set(newPost).then((value) {
       print('Post added successfully');
-
-      // Scroll to the end of the list (newest post)
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
         duration: Duration(milliseconds: 300),
@@ -110,37 +109,26 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   void _deletePost(String postId) {
-    Query postRef = _database.orderByChild('postId').equalTo(postId);
-
     String currentUserUid = FirebaseAuth.instance.currentUser!.uid;
 
-    postRef
-        .once()
-        .then((DataSnapshot dataSnapshot) {
-          Map<dynamic, dynamic>? data = dataSnapshot.value
-              as Map<dynamic, dynamic>?; // Fix the casting here
-          if (data != null) {
-            data.forEach((key, post) {
-              if (post['userId'] == currentUserUid) {
-                DatabaseReference postToRemove = _database.child(key);
-                postToRemove.remove().then((value) {
-                  setState(() {
-                    _feedData.removeWhere((post) => post['postId'] == postId);
-                  });
-                  _saveFeedData();
-                  print('Post deleted successfully');
-                }).catchError((error) {
-                  print('Error deleting post: $error');
-                });
-              } else {
-                print('You can only delete your own posts');
-              }
-            });
-          }
-        } as FutureOr Function(DatabaseEvent value))
-        .catchError((error) {
-      print('Error deleting post: $error');
-    });
+    // Find the post with the matching postId in the _feedData list
+    Map<String, dynamic>? postToDelete =
+        _feedData.firstWhereOrNull((post) => post['postId'] == postId);
+
+    if (postToDelete != null && postToDelete['userId'] == currentUserUid) {
+      DatabaseReference postToRemove = _database.child(postToDelete['key']);
+      postToRemove.remove().then((value) {
+        setState(() {
+          _feedData.removeWhere((post) => post['postId'] == postId);
+        });
+        _saveFeedData();
+        print('Post deleted successfully');
+      }).catchError((error) {
+        print('Error deleting post: $error');
+      });
+    } else {
+      print('You can only delete your own posts');
+    }
   }
 
   @override
@@ -183,9 +171,9 @@ class _FeedPageState extends State<FeedPage> {
                                       child: Text('Delete'),
                                       onPressed: () {
                                         Navigator.pop(context);
-                                        int postId = post['postId'];
-                                        _deletePost(postId
-                                            as String); // Call _deletePost method with postId as argument
+                                        String postId = post['postId'];
+                                        _deletePost(
+                                            postId); // Call _deletePost method with postId as argument
                                       },
                                     ),
                                   ],
