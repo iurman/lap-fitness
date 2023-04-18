@@ -229,6 +229,11 @@ class _FeedPageState extends State<FeedPage> {
                     }
                   },
                   child: Text('Post'),
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      Color.fromARGB(255, 138, 104, 35),
+                    ),
+                  ),
                 ),
               ],
             ),
