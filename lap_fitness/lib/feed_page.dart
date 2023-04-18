@@ -96,10 +96,6 @@ class _FeedPageState extends State<FeedPage> {
       'liked': false,
       'comments': [],
     };
-    setState(() {
-      _feedData.add(newPost);
-    });
-    _saveFeedData(); // Save updated data to SharedPreferences
 
     // Save new post to Firebase Realtime Database
     DatabaseReference newPostRef = _database.push();
