@@ -85,7 +85,13 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 40),
+                  Center(
+                    child: SizedBox(
+                      child: Image.asset('assets/images/lap2.png'),
+                      height: 80,
+                    ),
+                  ),
+                  SizedBox(height: 16),
                   Center(
                     child: Text(
                       'Calories for the day',
