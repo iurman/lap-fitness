@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:html';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -106,44 +107,114 @@ class _FeedPageState extends State<FeedPage> {
     });
   }
 
+  void _deletePost(int postId) {
+    DatabaseReference postRef = _database.child('$postId');
+    String postIdString = postId.toString(); // Convert postId to string
+    String currentUserUid = FirebaseAuth.instance.currentUser!.uid;
+    postRef.onValue.listen((event) {
+      if (event.snapshot.value != null) {
+        Map<dynamic, dynamic> post = Map<dynamic, dynamic>.from(
+            event.snapshot.value as Map<dynamic, dynamic>);
+        if (post['userId'] == currentUserUid) {
+          // User can only delete their own posts
+          postRef.remove().then((value) {
+            setState(() {
+              _feedData.removeWhere((post) => post['postId'] == postId);
+            });
+            _saveFeedData(); // Save updated data to SharedPreferences
+            print('Post deleted successfully');
+          }).catchError((error) {
+            print('Error deleting post: $error');
+          });
+        } else {
+          print('You can only delete your own posts');
+        }
+      } else {
+        print('Post not found');
+      }
+    }).onError((error) {
+      print('Error deleting post: $error');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text('Feed')),
       body: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.all(16.0),
-            child: TextFormField(
-              controller: _postController,
-              decoration: InputDecoration(
-                labelText: 'Post something...',
-              ),
-              onFieldSubmitted: (value) async {
-                if (value.isNotEmpty) {
-                  // Get the current user from Firebase Authentication
-                  User? currentUser = FirebaseAuth.instance.currentUser;
-                  if (currentUser != null) {
-                    String userId = currentUser.uid; // Get the user ID
-                    _addPost(value, userId);
-                    _postController.clear();
-                  } else {
-                    print(
-                        'Error: User is not logged in.'); // Handle case when user is not logged in
-                  }
-                }
-              },
-            ),
-          ),
           Expanded(
             child: ListView.builder(
               itemCount: _feedData.length,
               itemBuilder: (context, index) {
-                final post = _feedData[index];
+                Map<String, dynamic> post = _feedData[index];
+                bool isCurrentUserPost = post['userId'] ==
+                    FirebaseAuth.instance.currentUser!
+                        .uid; // Check if post is made by current user
                 return ListTile(
                   title: Text(post['body']),
-                  subtitle: Text('User ID: ${post['userId']}'),
+                  subtitle: Text('Posted by user ${post['userId']}'),
+                  trailing: isCurrentUserPost
+                      ? IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('Delete Post'),
+                                  content: Text(
+                                      'Are you sure you want to delete this post?'),
+                                  actions: [
+                                    TextButton(
+                                      child: Text('Cancel'),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    TextButton(
+                                      child: Text('Delete'),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        int postId = post['postId'];
+                                        _deletePost(
+                                            postId); // Call _deletePost method with postId as argument
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        )
+                      : null, // Set IconButton to null for posts that are not made by current user
                 );
               },
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _postController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter post',
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    String body = _postController.text;
+                    if (body.isNotEmpty) {
+                      _addPost(body, FirebaseAuth.instance.currentUser!.uid);
+                      _postController.clear();
+                    }
+                  },
+                  child: Text('Post'),
+                ),
+              ],
             ),
           ),
         ],
