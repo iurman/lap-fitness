@@ -53,25 +53,17 @@ class _FeedPageState extends State<FeedPage> {
         setState(() {
           _feedData.add(data.cast<String, dynamic>());
         });
-      }
-    }, onError: (error) {
-      print('Error fetching feed data: $error');
-    });
-
-    _database.onChildChanged.listen((event) {
-      Map<dynamic, dynamic>? data =
-          event.snapshot.value as Map<dynamic, dynamic>?;
-      if (data != null) {
-        setState(() {
-          int index =
-              _feedData.indexWhere((post) => post['postId'] == data['postId']);
-          if (index >= 0) {
-            _feedData[index] = data.cast<String, dynamic>();
-          }
+        // Scroll to the most recent post after loading all the posts
+        WidgetsBinding.instance!.addPostFrameCallback((_) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
         });
       }
     }, onError: (error) {
-      print('Error updating feed data: $error');
+      print('Error fetching feed data: $error');
     });
 
     _database.onChildRemoved.listen((event) {
@@ -125,8 +117,8 @@ class _FeedPageState extends State<FeedPage> {
     postRef
         .once()
         .then((DataSnapshot dataSnapshot) {
-          Map<dynamic, dynamic>? data =
-              dataSnapshot.value as Map<dynamic, dynamic>?;
+          Map<dynamic, dynamic>? data = dataSnapshot.value
+              as Map<dynamic, dynamic>?; // Fix the casting here
           if (data != null) {
             data.forEach((key, post) {
               if (post['userId'] == currentUserUid) {
