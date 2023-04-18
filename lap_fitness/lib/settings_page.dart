@@ -39,7 +39,10 @@ class SettingsPage extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => PrivacySettingsPage()),
+                MaterialPageRoute(
+                  builder: (context) => PrivacySettingsPage(
+                      userId: FirebaseAuth.instance.currentUser!.uid),
+                ),
               );
             },
           ),

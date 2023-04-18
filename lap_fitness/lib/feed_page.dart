@@ -1,12 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart'; // Import the uuid library
 import 'package:collection/collection.dart';
+import 'privacy_settings_page.dart';
 
 class FeedPage extends StatefulWidget {
   @override
@@ -16,6 +17,8 @@ class FeedPage extends StatefulWidget {
 class _FeedPageState extends State<FeedPage> {
   List<Map<String, dynamic>> _feedData = [];
   TextEditingController _postController = TextEditingController();
+  final DatabaseReference _usersDatabase =
+      FirebaseDatabase.instance.reference().child('users');
 
   final DatabaseReference _database =
       FirebaseDatabase.instance.reference().child('feedData');
@@ -85,13 +88,27 @@ class _FeedPageState extends State<FeedPage> {
     await prefs.setString('feedData', json.encode(_feedData));
   }
 
-  void _addPost(String body, String userId, String postId) {
+  void _addPost(String body, String userId, String postId) async {
+    // Fetch user data
+    String userEmail = FirebaseAuth.instance.currentUser!.email ?? '';
+    bool userPrivateMode = false;
+    await _usersDatabase.child(userId).once().then((DatabaseEvent event) {
+      Map<dynamic, dynamic>? userData =
+          event.snapshot.value as Map<dynamic, dynamic>?;
+      userPrivateMode = userData?['privateMode'] ?? false;
+    });
+
+    // Generate random name
+    String randomName = Uuid().v4();
+
     DatabaseReference newPostRef = _database.push();
     Map<String, dynamic> newPost = {
       'key': newPostRef.key, // Store the Firebase-generated key
       'userId': userId,
       'postId': postId,
       'body': body,
+      'userEmail': userEmail,
+      'displayName': userPrivateMode ? randomName : userEmail,
       'liked': false,
       'comments': [],
     };
@@ -148,7 +165,8 @@ class _FeedPageState extends State<FeedPage> {
                         .uid; // Check if post is made by current user
                 return ListTile(
                   title: Text(post['body']),
-                  subtitle: Text('Posted by user ${post['userId']}'),
+                  subtitle: Text('Posted by ${post['displayName']}'),
+
                   trailing: isCurrentUserPost
                       ? IconButton(
                           icon: Icon(Icons.delete),
