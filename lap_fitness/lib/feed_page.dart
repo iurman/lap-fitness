@@ -1,5 +1,5 @@
 // ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, library_private_types_in_public_api, prefer_final_fields, sort_child_properties_last
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 
 class FeedPage extends StatefulWidget {
@@ -19,6 +19,10 @@ class _FeedPageState extends State<FeedPage> {
           'assets/images/post.png', //need to add controller for image adding
       'likes': 10,
       'comments': 5,
+      'comments': [
+        {'name': 'John Doe', 'text': 'Awesome workout!'},
+        // Add more sample comments here
+      ],
     },
     // Add more sample data here
   ];
@@ -31,9 +35,64 @@ class _FeedPageState extends State<FeedPage> {
     super.dispose();
   }
 
+  void _addComment(int index, String text) {
+    setState(() {
+      _feedData[index]['comments'].add({'name': 'Me', 'text': text});
+    });
+  }
+
+  void _toggleLike(int index) {
+    setState(() {
+      _feedData[index]['likes'] = !_feedData[index]['liked']
+          ? _feedData[index]['likes'] + 1
+          : _feedData[index]['likes'] - 1;
+      _feedData[index]['liked'] = !_feedData[index]['liked'];
+    });
+  }
+
+  Future<void> _saveFeedData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('feedData', jsonEncode(_feedData));
+  }
+
+  Future<void> _loadFeedData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String feedDataString = prefs.getString('feedData');
+
+    if (feedDataString != null) {
+      setState(() {
+        _feedData = List<Map<String, dynamic>>.from(jsonDecode(feedDataString));
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('LAP: Lift and Progress'),
+        actions: [
+          PopupMenuButton<String>(
+            icon: Icon(Icons.filter_list),
+            onSelected: (String value) {
+              // Handle the selected option here
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem<String>(
+                  value: 'sort_time',
+                  child: Text('Sort by Time'),
+                ),
+                PopupMenuItem<String>(
+                  value: 'sort_likes',
+                  child: Text('Sort by Likes'),
+                ),
+                // Add more options here
+              ];
+            },
+          ),
+        ],
+      ),
       body: ListView.builder(
         itemCount: _feedData.length + 1,
         itemBuilder: (BuildContext context, int index) {
@@ -130,7 +189,11 @@ class _FeedPageState extends State<FeedPage> {
                                 color: Color.fromARGB(255, 138, 104, 35))),
                       ),
                       TextButton.icon(
-                        onPressed: () {},
+                        onPressed: () {
+                          _addComment(
+                              index - 1, _commentControllers[index - 1].text);
+                          _commentControllers[index - 1].clear();
+                        },
                         icon: Icon(Icons.comment,
                             color: Color.fromARGB(255, 138, 104, 35)),
                         label: Text('Comment',
@@ -173,6 +236,14 @@ class _FeedPageState extends State<FeedPage> {
                   ),
                 ],
               ),
+              Column(
+  children: _feedData[index - 1]['comments']
+      .map<Widget>((comment) => ListTile(
+            title: Text(comment['name']),
+            subtitle: Text(comment['text']),
+          ))
+      .toList(),
+),
             );
           }
         },
