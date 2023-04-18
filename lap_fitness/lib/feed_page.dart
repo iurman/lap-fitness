@@ -1,6 +1,6 @@
-import 'dart:async';
+// ignore_for_file: depend_on_referenced_packages, use_key_in_widget_constructors, library_private_types_in_public_api, prefer_final_fields, deprecated_member_use, prefer_const_constructors, avoid_print
+
 import 'dart:convert';
-import 'dart:html';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
