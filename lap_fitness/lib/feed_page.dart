@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart'; // Import the uuid library
 
 class FeedPage extends StatefulWidget {
   @override
@@ -17,6 +18,8 @@ class _FeedPageState extends State<FeedPage> {
 
   final DatabaseReference _database =
       FirebaseDatabase.instance.reference().child('feedData');
+
+  ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -89,10 +92,10 @@ class _FeedPageState extends State<FeedPage> {
     await prefs.setString('feedData', json.encode(_feedData));
   }
 
-  void _addPost(String body, String userId) {
+  void _addPost(String body, String userId, String postId) {
     Map<String, dynamic> newPost = {
       'userId': userId,
-      'postId': DateTime.now().millisecondsSinceEpoch,
+      'postId': postId,
       'body': body,
       'liked': false,
       'comments': [],
@@ -102,37 +105,48 @@ class _FeedPageState extends State<FeedPage> {
     DatabaseReference newPostRef = _database.push();
     newPostRef.set(newPost).then((value) {
       print('Post added successfully');
+
+      // Scroll to the end of the list (newest post)
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     }).catchError((error) {
       print('Failed to add post: $error');
     });
   }
 
-  void _deletePost(int postId) {
-    DatabaseReference postRef = _database.child('$postId');
-    String postIdString = postId.toString(); // Convert postId to string
+  void _deletePost(String postId) {
+    Query postRef = _database.orderByChild('postId').equalTo(postId);
+
     String currentUserUid = FirebaseAuth.instance.currentUser!.uid;
-    postRef.onValue.listen((event) {
-      if (event.snapshot.value != null) {
-        Map<dynamic, dynamic> post = Map<dynamic, dynamic>.from(
-            event.snapshot.value as Map<dynamic, dynamic>);
-        if (post['userId'] == currentUserUid) {
-          // User can only delete their own posts
-          postRef.remove().then((value) {
-            setState(() {
-              _feedData.removeWhere((post) => post['postId'] == postId);
+
+    postRef
+        .once()
+        .then((DataSnapshot dataSnapshot) {
+          Map<dynamic, dynamic>? data =
+              dataSnapshot.value as Map<dynamic, dynamic>?;
+          if (data != null) {
+            data.forEach((key, post) {
+              if (post['userId'] == currentUserUid) {
+                DatabaseReference postToRemove = _database.child(key);
+                postToRemove.remove().then((value) {
+                  setState(() {
+                    _feedData.removeWhere((post) => post['postId'] == postId);
+                  });
+                  _saveFeedData();
+                  print('Post deleted successfully');
+                }).catchError((error) {
+                  print('Error deleting post: $error');
+                });
+              } else {
+                print('You can only delete your own posts');
+              }
             });
-            _saveFeedData(); // Save updated data to SharedPreferences
-            print('Post deleted successfully');
-          }).catchError((error) {
-            print('Error deleting post: $error');
-          });
-        } else {
-          print('You can only delete your own posts');
-        }
-      } else {
-        print('Post not found');
-      }
-    }).onError((error) {
+          }
+        } as FutureOr Function(DatabaseEvent value))
+        .catchError((error) {
       print('Error deleting post: $error');
     });
   }
@@ -140,11 +154,12 @@ class _FeedPageState extends State<FeedPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Feed')),
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
+              controller:
+                  _scrollController, // Assign the scroll controller here
               itemCount: _feedData.length,
               itemBuilder: (context, index) {
                 Map<String, dynamic> post = _feedData[index];
@@ -177,8 +192,8 @@ class _FeedPageState extends State<FeedPage> {
                                       onPressed: () {
                                         Navigator.pop(context);
                                         int postId = post['postId'];
-                                        _deletePost(
-                                            postId); // Call _deletePost method with postId as argument
+                                        _deletePost(postId
+                                            as String); // Call _deletePost method with postId as argument
                                       },
                                     ),
                                   ],
@@ -208,7 +223,10 @@ class _FeedPageState extends State<FeedPage> {
                   onPressed: () {
                     String body = _postController.text;
                     if (body.isNotEmpty) {
-                      _addPost(body, FirebaseAuth.instance.currentUser!.uid);
+                      String userId = FirebaseAuth.instance.currentUser!.uid;
+                      String postId = Uuid()
+                          .v4(); // Generate a unique ID using uuid library
+                      _addPost(body, userId, postId);
                       _postController.clear();
                     }
                   },
