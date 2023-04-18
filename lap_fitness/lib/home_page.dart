@@ -94,7 +94,7 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(height: 16),
                   Center(
                     child: Text(
-                      'Calories for the day',
+                      'Welcome to the App!',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
