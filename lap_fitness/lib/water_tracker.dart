@@ -1,6 +1,8 @@
 // ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors, sized_box_for_whitespace
 
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class WaterTracker extends StatefulWidget {
   @override
@@ -9,10 +11,22 @@ class WaterTracker extends StatefulWidget {
 
 class _WaterTrackerState extends State<WaterTracker> {
   int _waterIntake = 0;
+  late DatabaseReference
+      _waterIntakeRef; // Firebase Realtime Database reference
+
+  @override
+  void initState() {
+    super.initState();
+    Firebase.initializeApp(); // Initialize Firebase
+    _waterIntakeRef = FirebaseDatabase.instance.reference().child(
+        'waterIntake'); // Reference to the 'waterIntake' node in the database
+  }
 
   void _incrementWaterIntake() {
     setState(() {
       _waterIntake++;
+      _waterIntakeRef
+          .set(_waterIntake); // Save water intake value to the database
     });
   }
 
@@ -20,6 +34,8 @@ class _WaterTrackerState extends State<WaterTracker> {
     setState(() {
       if (_waterIntake > 0) {
         _waterIntake--;
+        _waterIntakeRef
+            .set(_waterIntake); // Save water intake value to the database
       }
     });
   }
