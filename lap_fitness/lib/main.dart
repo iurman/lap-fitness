@@ -15,7 +15,6 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    FirebaseDatabase.instance.setPersistenceEnabled(true);
   } catch (e) {
     // ignore: avoid_print
     print('Error initializing Firebase: $e');
