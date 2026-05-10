@@ -14,11 +14,11 @@ class NotesPage extends StatefulWidget {
   final bool showAllNotes;
 
   const NotesPage({
-    Key? key,
+    super.key,
     this.selectedDate,
     this.showAppBar = false,
     this.showAllNotes = true,
-  }) : super(key: key);
+  });
 
   @override
   State<NotesPage> createState() => _NotesPageState();
@@ -58,7 +58,7 @@ class _NotesPageState extends State<NotesPage> {
         if (!mounted) return;
         setState(() => _notesList = notes);
       });
-    } catch (_) {/* not signed in yet */}
+    } catch (_) {/* not signed in */}
   }
 
   TextEditingController _titleControllerFor(String key, String text) {
@@ -86,6 +86,7 @@ class _NotesPageState extends State<NotesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: widget.showAppBar
           ? BrandAppBar(
               title:
@@ -96,90 +97,136 @@ class _NotesPageState extends State<NotesPage> {
               ),
             )
           : null,
-      body: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.75,
-        ),
-        itemCount: _notesList.length,
-        itemBuilder: (context, index) {
-          final note = _notesList[index];
-          final key = note['key'] as String;
-          final titleController =
-              _titleControllerFor(key, note['name'] as String? ?? '');
-          return Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.3),
-                  blurRadius: 6,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: titleController,
-                  decoration: const InputDecoration(
-                    hintText: 'Title',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.brand,
-                  ),
-                  onChanged: (value) => _repo.updateName(key, value),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  DateFormat.yMd()
-                      .add_jm()
-                      .format(DateTime.parse(note['created_at'] as String)),
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: TextFormField(
-                    decoration: const InputDecoration(
-                      hintText: 'Note',
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
+      body: _notesList.isEmpty
+          ? const _EmptyNotes()
+          : GridView.builder(
+              padding: const EdgeInsets.all(12),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.8,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+              ),
+              itemCount: _notesList.length,
+              itemBuilder: (context, index) {
+                final note = _notesList[index];
+                final key = note['key'] as String;
+                final titleController =
+                    _titleControllerFor(key, note['name'] as String? ?? '');
+                return AnimatedScale(
+                  scale: 1,
+                  duration: const Duration(milliseconds: 200),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    initialValue: note['content'] as String? ?? '',
-                    onChanged: (value) => _repo.updateContent(key, value),
-                    maxLines: null,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () {
-                        _repo.deleteNote(key);
-                        _titleControllers.remove(key)?.dispose();
-                      },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextFormField(
+                          controller: titleController,
+                          decoration: const InputDecoration(
+                            hintText: 'Title',
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            filled: false,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.brand,
+                          ),
+                          onChanged: (value) => _repo.updateName(key, value),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          DateFormat.yMd().add_jm().format(
+                                DateTime.parse(note['created_at'] as String),
+                              ),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Expanded(
+                          child: TextFormField(
+                            decoration: const InputDecoration(
+                              hintText: 'Note',
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              filled: false,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                            initialValue: note['content'] as String? ?? '',
+                            onChanged: (value) =>
+                                _repo.updateContent(key, value),
+                            maxLines: null,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: IconButton(
+                            icon: const Icon(Icons.delete_outline,
+                                color: Colors.grey),
+                            onPressed: () {
+                              _repo.deleteNote(key);
+                              _titleControllers.remove(key)?.dispose();
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.brand,
+        foregroundColor: Colors.white,
         onPressed: () => _repo.addNote(widget.selectedDate),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('New Note'),
+      ),
+    );
+  }
+}
+
+class _EmptyNotes extends StatelessWidget {
+  const _EmptyNotes();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.sticky_note_2_outlined,
+              size: 72, color: Colors.grey[400]),
+          const SizedBox(height: 12),
+          Text(
+            'No notes yet',
+            style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Tap the button below to add one.',
+            style: TextStyle(color: Colors.grey[500]),
+          ),
+        ],
       ),
     );
   }

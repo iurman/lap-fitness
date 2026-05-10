@@ -2,11 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'auth_page.dart';
-import 'core/theme/app_colors.dart';
 import 'core/widgets/brand_app_bar.dart';
 
 class AccountSettingsPage extends StatefulWidget {
-  const AccountSettingsPage({Key? key}) : super(key: key);
+  const AccountSettingsPage({super.key});
 
   @override
   State<AccountSettingsPage> createState() => _AccountSettingsPageState();
@@ -36,10 +35,14 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
     if (user == null) return;
 
     try {
-      await user.updateEmail(_emailController.text);
+      // Newer Firebase requires a verification email before the address
+      // is updated. Falls back to a direct update for older platforms.
+      await user.verifyBeforeUpdateEmail(_emailController.text.trim());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email address updated.')),
+        const SnackBar(
+            content: Text(
+                'Verification email sent. Tap the link to finish the change.')),
       );
       _emailFormKey.currentState!.reset();
     } on FirebaseAuthException catch (e) {
@@ -79,7 +82,10 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
             onPressed: () => Navigator.pop(ctx, false),
             child: const Text('Cancel'),
           ),
-          TextButton(
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Delete'),
           ),
@@ -111,110 +117,112 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: const BrandAppBar(title: 'Account Settings'),
-      body: Center(
-        child: SizedBox(
-          width: 400,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 128.0),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Change Email',
-                        style: TextStyle(color: AppColors.brand, fontSize: 18),
-                      ),
-                      const SizedBox(height: 16.0),
-                      Form(
-                        key: _emailFormKey,
-                        child: TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            labelText: 'New Email',
-                            errorText: _emailError,
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter an email address.';
-                            }
-                            if (!_emailRegex.hasMatch(value)) {
-                              return 'Please enter a valid email address.';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 16.0),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.brand,
-                        ),
-                        onPressed: _changeEmail,
-                        child: const Text('Change Email'),
-                      ),
-                    ],
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _SectionCard(
+            title: 'Change Email',
+            child: Form(
+              key: _emailFormKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextFormField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      labelText: 'New Email',
+                      errorText: _emailError,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter an email address.';
+                      }
+                      if (!_emailRegex.hasMatch(value)) {
+                        return 'Please enter a valid email address.';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-              ),
-              const SizedBox(height: 32.0),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Change Password',
-                        style: TextStyle(color: AppColors.brand, fontSize: 18),
-                      ),
-                      const SizedBox(height: 16.0),
-                      Form(
-                        key: _passwordFormKey,
-                        child: TextFormField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          cursorColor: AppColors.brand,
-                          decoration: InputDecoration(
-                            labelText: 'New Password',
-                            errorText: _passwordError,
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a password.';
-                            }
-                            if (value.length < 6) {
-                              return 'Password must be at least 6 characters long.';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 16.0),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.brand,
-                        ),
-                        onPressed: _changePassword,
-                        child: const Text('Change Password'),
-                      ),
-                      const SizedBox(height: 32.0),
-                    ],
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: _changeEmail,
+                    icon: const Icon(Icons.mark_email_read_outlined),
+                    label: const Text('Send verification'),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(height: 32.0),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                onPressed: _deleteAccount,
-                child: const Text('Delete Account'),
-              ),
-              const Spacer(),
-            ],
+            ),
           ),
+          const SizedBox(height: 8),
+          _SectionCard(
+            title: 'Change Password',
+            child: Form(
+              key: _passwordFormKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextFormField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'New Password',
+                      errorText: _passwordError,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a password.';
+                      }
+                      if (value.length < 6) {
+                        return 'Password must be at least 6 characters long.';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: _changePassword,
+                    icon: const Icon(Icons.lock_reset_rounded),
+                    label: const Text('Update password'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            onPressed: _deleteAccount,
+            icon: const Icon(Icons.delete_forever_outlined),
+            label: const Text('Delete Account'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionCard extends StatelessWidget {
+  final String title;
+  final Widget child;
+  const _SectionCard({required this.title, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            child,
+          ],
         ),
       ),
     );

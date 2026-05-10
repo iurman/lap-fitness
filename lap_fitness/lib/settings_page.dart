@@ -3,22 +3,26 @@ import 'package:flutter/material.dart';
 
 import 'account_settings_page.dart';
 import 'auth_page.dart';
+import 'core/theme/app_colors.dart';
 import 'core/widgets/brand_app_bar.dart';
 import 'privacy_settings_page.dart';
 import 'user_info.dart';
 
 class SettingsPage extends StatelessWidget {
-  const SettingsPage({Key? key}) : super(key: key);
+  const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: const BrandAppBar(title: 'Settings'),
       body: ListView(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
         children: [
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text('Profile Settings'),
+          _SettingsTile(
+            icon: Icons.person_outline,
+            title: 'Profile Settings',
+            subtitle: 'Update your personal information',
             onTap: () {
               Navigator.push(
                 context,
@@ -31,9 +35,10 @@ class SettingsPage extends StatelessWidget {
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.privacy_tip),
-            title: const Text('Privacy Settings'),
+          _SettingsTile(
+            icon: Icons.privacy_tip_outlined,
+            title: 'Privacy Settings',
+            subtitle: 'Control how others see your posts',
             onTap: () {
               final uid = FirebaseAuth.instance.currentUser?.uid;
               if (uid == null) return;
@@ -45,9 +50,10 @@ class SettingsPage extends StatelessWidget {
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.account_circle),
-            title: const Text('Account Settings'),
+          _SettingsTile(
+            icon: Icons.account_circle_outlined,
+            title: 'Account Settings',
+            subtitle: 'Email, password, and account deletion',
             onTap: () {
               Navigator.push(
                 context,
@@ -57,9 +63,12 @@ class SettingsPage extends StatelessWidget {
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Sign Out'),
+          const SizedBox(height: 8),
+          _SettingsTile(
+            icon: Icons.logout_rounded,
+            title: 'Sign Out',
+            subtitle: 'Log out of your account',
+            destructive: true,
             onTap: () async {
               await FirebaseAuth.instance.signOut();
               if (!context.mounted) return;
@@ -71,6 +80,54 @@ class SettingsPage extends StatelessWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SettingsTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final bool destructive;
+
+  const _SettingsTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.destructive = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = destructive
+        ? Theme.of(context).colorScheme.error
+        : AppColors.brand;
+    return Card(
+      child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: color),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: destructive ? color : null,
+          ),
+        ),
+        subtitle: Text(subtitle),
+        trailing: Icon(Icons.chevron_right_rounded, color: Colors.grey[500]),
+        onTap: onTap,
       ),
     );
   }

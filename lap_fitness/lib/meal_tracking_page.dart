@@ -7,7 +7,7 @@ import 'core/theme/app_colors.dart';
 import 'data/meal_repository.dart';
 
 class MealTrackingPage extends StatefulWidget {
-  const MealTrackingPage({Key? key}) : super(key: key);
+  const MealTrackingPage({super.key});
 
   @override
   State<MealTrackingPage> createState() => _MealTrackingPageState();
@@ -74,6 +74,11 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
     final carbs = double.tryParse(_carbsController.text) ?? 0.0;
 
     if (mealName.isEmpty || (protein == 0.0 && fat == 0.0 && carbs == 0.0)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Add a meal name and at least one macro value.'),
+        ),
+      );
       return;
     }
 
@@ -109,89 +114,181 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
     final t = _totals();
 
     return Scaffold(
-      body: Column(
+      backgroundColor: const Color(0xFFFAFAFA),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Add a meal',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _mealNameController,
-                  decoration: const InputDecoration(labelText: 'Meal name'),
-                ),
-                const SizedBox(height: 8.0),
-                TextFormField(
-                  controller: _proteinController,
-                  decoration: const InputDecoration(labelText: 'Protein (g)'),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 8.0),
-                TextFormField(
-                  controller: _fatController,
-                  decoration: const InputDecoration(labelText: 'Fat (g)'),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 8.0),
-                TextFormField(
-                  controller: _carbsController,
-                  decoration: const InputDecoration(labelText: 'Carbs (g)'),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 16.0),
-                Center(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.brand,
-                    ),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Add a meal',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 16.0),
+                  TextField(
+                    controller: _mealNameController,
+                    decoration: const InputDecoration(labelText: 'Meal name'),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _proteinController,
+                          decoration:
+                              const InputDecoration(labelText: 'Protein (g)'),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: _fatController,
+                          decoration:
+                              const InputDecoration(labelText: 'Fat (g)'),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: _carbsController,
+                          decoration:
+                              const InputDecoration(labelText: 'Carbs (g)'),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16.0),
+                  FilledButton.icon(
                     onPressed: _submitMealForm,
-                    child: const Text('Add meal'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add meal'),
                   ),
-                ),
-                const SizedBox(height: 16.0),
-                Center(
-                  child: Text(
-                    'Total Calories: ${t['calories']!.toStringAsFixed(2)} cal\n'
-                    'Total Protein: ${t['protein']!.toStringAsFixed(2)} g\n'
-                    'Total Fat: ${t['fat']!.toStringAsFixed(2)} g\n'
-                    'Total Carbs: ${t['carbs']!.toStringAsFixed(2)} g',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _mealJournal.length,
-              itemBuilder: (context, index) {
-                final meal = _mealJournal[index];
-                return Dismissible(
-                  key: Key(meal['key'] as String),
-                  onDismissed: (_) => _deleteMeal(meal['key'] as String),
-                  child: Card(
-                    child: ListTile(
-                      title: Text('${meal['name']}'),
-                      subtitle: Text(
-                        '${meal['protein']}g P | ${meal['fat']}g F | ${meal['carbs']}g C',
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _deleteMeal(meal['key'] as String),
-                      ),
+          const SizedBox(height: 8),
+          _TotalsCard(totals: t),
+          const SizedBox(height: 8),
+          if (_mealJournal.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              child: Center(
+                child: Text(
+                  'No meals logged yet',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+              ),
+            )
+          else
+            ..._mealJournal.map(
+              (meal) => Dismissible(
+                key: Key(meal['key'] as String),
+                background: _DismissBackground(),
+                onDismissed: (_) => _deleteMeal(meal['key'] as String),
+                child: Card(
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: AppColors.brand,
+                      child: Icon(Icons.restaurant_menu, color: Colors.white),
+                    ),
+                    title: Text('${meal['name']}'),
+                    subtitle: Text(
+                      '${meal['protein']}g P · ${meal['fat']}g F · ${meal['carbs']}g C',
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () => _deleteMeal(meal['key'] as String),
                     ),
                   ),
-                );
-              },
+                ),
+              ),
             ),
-          ),
         ],
       ),
+    );
+  }
+}
+
+class _TotalsCard extends StatelessWidget {
+  final Map<String, double> totals;
+  const _TotalsCard({required this.totals});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Daily Totals',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _Metric(label: 'Calories', value: totals['calories']!),
+                _Metric(
+                    label: 'Protein',
+                    value: totals['protein']!,
+                    suffix: 'g'),
+                _Metric(label: 'Fat', value: totals['fat']!, suffix: 'g'),
+                _Metric(label: 'Carbs', value: totals['carbs']!, suffix: 'g'),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Metric extends StatelessWidget {
+  final String label;
+  final double value;
+  final String suffix;
+  const _Metric({required this.label, required this.value, this.suffix = ''});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          '${value.toStringAsFixed(0)}$suffix',
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.brand,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(label, style: TextStyle(color: Colors.grey[700], fontSize: 12)),
+      ],
+    );
+  }
+}
+
+class _DismissBackground extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.error,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: const Icon(Icons.delete_outline, color: Colors.white),
     );
   }
 }

@@ -14,7 +14,7 @@ import 'data/feed_repository.dart';
 import 'data/user_repository.dart';
 
 class FeedPage extends StatefulWidget {
-  const FeedPage({Key? key}) : super(key: key);
+  const FeedPage({super.key});
 
   @override
   State<FeedPage> createState() => _FeedPageState();
@@ -31,6 +31,7 @@ class _FeedPageState extends State<FeedPage> {
   List<Map<String, dynamic>> _feedData = [];
   StreamSubscription<DatabaseEvent>? _addedSub;
   StreamSubscription<DatabaseEvent>? _removedSub;
+  bool _posting = false;
 
   @override
   void initState() {
@@ -58,7 +59,7 @@ class _FeedPageState extends State<FeedPage> {
       setState(() {
         _feedData = decoded.cast<Map<String, dynamic>>();
       });
-    } catch (_) {/* corrupt cache; ignore */}
+    } catch (_) {/* ignore corrupt cache */}
   }
 
   Future<void> _saveCache() async {
@@ -73,10 +74,7 @@ class _FeedPageState extends State<FeedPage> {
       final post = data.cast<String, dynamic>();
       final postId = post['postId'] as String?;
       if (postId == null) return;
-
-      final exists = _feedData.any((p) => p['postId'] == postId);
-      if (exists) return;
-
+      if (_feedData.any((p) => p['postId'] == postId)) return;
       if (!mounted) return;
       setState(() => _feedData.add(post));
       _saveCache();
@@ -161,74 +159,202 @@ class _FeedPageState extends State<FeedPage> {
         content: const Text('Are you sure you want to delete this post?'),
         actions: [
           TextButton(
-            child: const Text('Cancel'),
             onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
           ),
-          TextButton(
-            child: const Text('Delete'),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
             onPressed: () {
               Navigator.pop(ctx);
               _deletePost(postId);
             },
+            child: const Text('Delete'),
           ),
         ],
       ),
     );
   }
 
+  Future<void> _onSubmit() async {
+    final body = _postController.text.trim();
+    if (body.isEmpty) return;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    setState(() => _posting = true);
+    await _addPost(body, uid, const Uuid().v4());
+    _postController.clear();
+    if (mounted) setState(() => _posting = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
     return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              itemCount: _feedData.length,
-              itemBuilder: (context, index) {
-                final post = _feedData[index];
-                final isMine = post['userId'] == currentUid;
-                return ListTile(
-                  title: Text('${post['body']}'),
-                  subtitle: Text('Posted by ${post['displayName']}'),
-                  trailing: isMine
-                      ? IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () =>
-                              _confirmDelete(post['postId'] as String),
-                        )
-                      : null,
-                );
-              },
+            child: _feedData.isEmpty
+                ? const _EmptyFeed()
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    itemCount: _feedData.length,
+                    itemBuilder: (context, index) {
+                      final post = _feedData[index];
+                      final isMine = post['userId'] == currentUid;
+                      return _FeedItem(
+                        body: '${post['body']}',
+                        author: '${post['displayName']}',
+                        showDelete: isMine,
+                        onDelete: () =>
+                            _confirmDelete(post['postId'] as String),
+                      );
+                    },
+                  ),
+          ),
+          SafeArea(
+            top: false,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _postController,
+                      decoration: const InputDecoration(
+                        hintText: 'Share something...',
+                      ),
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _onSubmit(),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: _posting
+                        ? const SizedBox(
+                            key: ValueKey('busy'),
+                            width: 48,
+                            height: 48,
+                            child: Padding(
+                              padding: EdgeInsets.all(12),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : IconButton.filled(
+                            key: const ValueKey('send'),
+                            onPressed: _onSubmit,
+                            style: IconButton.styleFrom(
+                              backgroundColor: AppColors.brand,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(48, 48),
+                            ),
+                            icon: const Icon(Icons.send_rounded),
+                          ),
+                  ),
+                ],
+              ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _postController,
-                    decoration: const InputDecoration(hintText: 'Enter post'),
-                  ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeedItem extends StatelessWidget {
+  final String body;
+  final String author;
+  final bool showDelete;
+  final VoidCallback onDelete;
+
+  const _FeedItem({
+    required this.body,
+    required this.author,
+    required this.showDelete,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: AppColors.brand.withValues(alpha: 0.15),
+                child: const Icon(Icons.person, color: AppColors.brand),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      author,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.brand,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(body, style: const TextStyle(fontSize: 15)),
+                  ],
                 ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brand,
-                  ),
-                  onPressed: () {
-                    final body = _postController.text;
-                    if (body.isEmpty) return;
-                    final uid = FirebaseAuth.instance.currentUser?.uid;
-                    if (uid == null) return;
-                    _addPost(body, uid, const Uuid().v4());
-                    _postController.clear();
-                  },
-                  child: const Text('Post'),
+              ),
+              if (showDelete)
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  color: Colors.grey[600],
+                  onPressed: onDelete,
                 ),
-              ],
-            ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyFeed extends StatelessWidget {
+  const _EmptyFeed();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.forum_outlined,
+              size: 72, color: Colors.grey[400]),
+          const SizedBox(height: 12),
+          Text(
+            'No posts yet',
+            style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Be the first to share something.',
+            style: TextStyle(color: Colors.grey[500]),
           ),
         ],
       ),

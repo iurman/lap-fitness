@@ -1,41 +1,49 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_colors.dart';
 
+/// AppBar with the brand gradient and consistent typography.
 class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? actions;
   final Widget? leading;
   final bool automaticallyImplyLeading;
   final bool centerTitle;
+  final double elevation;
 
   const BrandAppBar({
-    Key? key,
+    super.key,
     required this.title,
     this.actions,
     this.leading,
     this.automaticallyImplyLeading = true,
     this.centerTitle = true,
-  }) : super(key: key);
+    this.elevation = 0,
+  });
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: AppColors.brand,
-      foregroundColor: Colors.white,
-      automaticallyImplyLeading: automaticallyImplyLeading,
-      centerTitle: centerTitle,
-      leading: leading,
-      actions: actions,
-      title: Text(
-        title,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.brand, AppColors.brandSoft],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+      ),
+      child: AppBar(
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        elevation: elevation,
+        scrolledUnderElevation: 0,
+        automaticallyImplyLeading: automaticallyImplyLeading,
+        centerTitle: centerTitle,
+        leading: leading,
+        actions: actions,
+        title: Text(title),
       ),
     );
   }

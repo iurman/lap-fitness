@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'calendar_page.dart';
 import 'core/theme/app_colors.dart';
+import 'core/widgets/animated_tap_card.dart';
 import 'core/widgets/brand_app_bar.dart';
 import 'feed_page.dart';
 import 'meal_tracking_page.dart';
@@ -12,7 +13,7 @@ import 'water_tracker.dart';
 import 'workout_tracker.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -20,12 +21,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   static const int _homeTabIndex = 2;
-  static const List<_HomeTab> _tabs = [
-    _HomeTab(name: 'Feed', icon: Icons.rss_feed),
-    _HomeTab(name: 'Notes', icon: Icons.note),
-    _HomeTab(name: 'Home', icon: Icons.home),
-    _HomeTab(name: 'Meal Tracking', icon: Icons.restaurant_menu),
-    _HomeTab(name: 'Calendar', icon: Icons.calendar_today),
+  static const List<_HomeTab> _tabs = <_HomeTab>[
+    _HomeTab(name: 'Feed', icon: Icons.rss_feed_rounded),
+    _HomeTab(name: 'Notes', icon: Icons.sticky_note_2_outlined),
+    _HomeTab(name: 'Home', icon: Icons.home_rounded),
+    _HomeTab(name: 'Meals', icon: Icons.restaurant_menu_rounded),
+    _HomeTab(name: 'Calendar', icon: Icons.calendar_today_rounded),
   ];
 
   int _selectedIndex = _homeTabIndex;
@@ -39,7 +40,7 @@ class _HomePageState extends State<HomePage> {
       case 1:
         return NotesPage(selectedDate: DateTime.now());
       case 2:
-        return _HomeTabBody();
+        return const _HomeTabBody();
       case 3:
         return const MealTrackingPage();
       case 4:
@@ -60,7 +61,8 @@ class _HomePageState extends State<HomePage> {
         actions: _selectedIndex == _homeTabIndex
             ? [
                 IconButton(
-                  icon: const Icon(Icons.settings, color: Colors.white),
+                  icon: const Icon(Icons.settings_outlined,
+                      color: Colors.white),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -73,18 +75,36 @@ class _HomePageState extends State<HomePage> {
               ]
             : null,
       ),
-      body: _buildTabBody(_selectedIndex),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: AppColors.brand,
-        unselectedItemColor: AppColors.brand,
-        items: _tabs
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 280),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.04),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
+          ),
+        ),
+        child: KeyedSubtree(
+          key: ValueKey<int>(_selectedIndex),
+          child: _buildTabBody(_selectedIndex),
+        ),
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: _onItemTapped,
+        backgroundColor: Colors.white,
+        indicatorColor: AppColors.brand.withValues(alpha: 0.12),
+        destinations: _tabs
             .map(
-              (t) => BottomNavigationBarItem(
-                icon: Icon(t.icon, color: AppColors.brand),
+              (t) => NavigationDestination(
+                icon: Icon(t.icon, color: Colors.grey[600]),
+                selectedIcon: Icon(t.icon, color: AppColors.brand),
                 label: t.name,
-                backgroundColor: Colors.white,
               ),
             )
             .toList(),
@@ -100,54 +120,65 @@ class _HomeTab {
 }
 
 class _HomeTabBody extends StatelessWidget {
+  const _HomeTabBody();
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+      children: [
+        Center(
+          child: Hero(
+            tag: 'lap-logo',
             child: SizedBox(
-              height: 80,
+              height: 96,
               child: Image.asset('assets/images/lap2.png'),
             ),
           ),
-          const SizedBox(height: 16),
-          const _SectionTitle('Welcome to the App!'),
-          const SizedBox(height: 16),
-          _HomeCard(
+        ),
+        const SizedBox(height: 16),
+        const _SectionTitle('Welcome to the App!'),
+        const SizedBox(height: 16),
+        AnimatedTapCard(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const UserInfoPage()),
+          ),
+          child: const _CardContents(
+            icon: Icons.person_outline,
             title: 'New or want to change user info?',
-            actionLabel: 'Press Here!',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const UserInfoPage()),
-            ),
+            cta: 'Press Here!',
           ),
-          const SizedBox(height: 32),
-          const _SectionTitle('Ready to Workout?'),
-          const SizedBox(height: 16),
-          _HomeCard(
+        ),
+        const SizedBox(height: 28),
+        const _SectionTitle('Ready to Workout?'),
+        const SizedBox(height: 16),
+        AnimatedTapCard(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const WorkoutTracker()),
+          ),
+          child: const _CardContents(
+            icon: Icons.fitness_center_rounded,
             title: 'Press here!',
-            actionLabel: "Let's kill it today",
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const WorkoutTracker()),
-            ),
+            cta: "Let's kill it today",
           ),
-          const SizedBox(height: 32),
-          const _SectionTitle('Water Intake'),
-          const SizedBox(height: 16),
-          _HomeCard(
+        ),
+        const SizedBox(height: 28),
+        const _SectionTitle('Water Intake'),
+        const SizedBox(height: 16),
+        AnimatedTapCard(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const WaterTracker()),
+          ),
+          child: const _CardContents(
+            icon: Icons.water_drop_outlined,
             title: 'How much did you drink?',
-            actionLabel: 'Tap Here',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const WaterTracker()),
-            ),
+            cta: 'Tap Here',
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -158,61 +189,74 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-          color: AppColors.brand,
-        ),
+    return Text(
+      text,
+      textAlign: TextAlign.center,
+      style: const TextStyle(
+        fontSize: 26,
+        fontWeight: FontWeight.bold,
+        color: AppColors.brand,
+        letterSpacing: 0.2,
       ),
     );
   }
 }
 
-class _HomeCard extends StatelessWidget {
+class _CardContents extends StatelessWidget {
+  final IconData icon;
   final String title;
-  final String actionLabel;
-  final VoidCallback onTap;
+  final String cta;
 
-  const _HomeCard({
+  const _CardContents({
+    required this.icon,
     required this.title,
-    required this.actionLabel,
-    required this.onTap,
+    required this.cta,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(16),
+    return Row(
+      children: [
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: AppColors.brand.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(icon, color: AppColors.brand, size: 28),
         ),
-        child: Column(
-          children: [
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              actionLabel,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16, color: AppColors.brand),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                cta,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.brand,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
+        const Icon(
+          Icons.chevron_right_rounded,
+          color: AppColors.brand,
+          size: 28,
+        ),
+      ],
     );
   }
 }
