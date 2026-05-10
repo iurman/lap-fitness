@@ -73,7 +73,7 @@ export default function SignupForm({
     <div className="w-full">
       <form
         onSubmit={handleSubmit}
-        className={`flex flex-col sm:flex-row gap-3 w-full ${isLarge ? "max-w-lg" : "max-w-md"}`}
+        className={`flex flex-col sm:flex-row gap-3 mx-auto ${isLarge ? "max-w-lg" : "max-w-md"}`}
       >
         <input
           type="email"
@@ -124,7 +124,7 @@ export default function SignupForm({
         </button>
       </form>
       {state === "error" && (
-        <p className="mt-2 text-sm text-red-400">{message}</p>
+        <p className="mt-2 text-sm text-red-400 text-center">{message}</p>
       )}
     </div>
   );
