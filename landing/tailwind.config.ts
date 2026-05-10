@@ -9,12 +9,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#090D1A",
-        surface: "#0F1528",
-        "surface-2": "#151D35",
-        accent: "#4ADE80",
-        "accent-dim": "#22C55E",
-        muted: "#6B7A99",
+        background: "#0D0B08",
+        surface: "#161209",
+        "surface-2": "#1E1810",
+        accent: "#D4921A",
+        "accent-dim": "#B87D16",
+        muted: "#8A7A65",
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
@@ -22,7 +22,7 @@ const config: Config = {
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "hero-glow":
-          "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(74, 222, 128, 0.12), transparent)",
+          "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(212, 146, 26, 0.12), transparent)",
       },
       animation: {
         "fade-up": "fadeUp 0.6s ease-out forwards",
