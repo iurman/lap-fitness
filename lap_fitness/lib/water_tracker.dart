@@ -1,95 +1,104 @@
-// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors, sized_box_for_whitespace
-
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_database/firebase_database.dart';
+
+import 'core/widgets/brand_app_bar.dart';
+import 'data/water_repository.dart';
 
 class WaterTracker extends StatefulWidget {
+  const WaterTracker({Key? key}) : super(key: key);
+
   @override
-  _WaterTrackerState createState() => _WaterTrackerState();
+  State<WaterTracker> createState() => _WaterTrackerState();
 }
 
 class _WaterTrackerState extends State<WaterTracker> {
+  final WaterRepository _repo = WaterRepository();
   int _waterIntake = 0;
-  late DatabaseReference
-      _waterIntakeRef; // Firebase Realtime Database reference
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    Firebase.initializeApp(); // Initialize Firebase
-    _waterIntakeRef = FirebaseDatabase.instance.reference().child(
-        'waterIntake'); // Reference to the 'waterIntake' node in the database
+    _loadIntake();
   }
 
-  void _incrementWaterIntake() {
-    setState(() {
-      _waterIntake++;
-      _waterIntakeRef
-          .set(_waterIntake); // Save water intake value to the database
-    });
+  Future<void> _loadIntake() async {
+    try {
+      final value = await _repo.fetchIntake();
+      if (!mounted) return;
+      setState(() {
+        _waterIntake = value;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
   }
 
-  void _decrementWaterIntake() {
-    setState(() {
-      if (_waterIntake > 0) {
-        _waterIntake--;
-        _waterIntakeRef
-            .set(_waterIntake); // Save water intake value to the database
-      }
-    });
+  Future<void> _persist() async {
+    try {
+      await _repo.setIntake(_waterIntake);
+    } catch (_) {/* swallow */}
+  }
+
+  void _increment() {
+    setState(() => _waterIntake++);
+    _persist();
+  }
+
+  void _decrement() {
+    if (_waterIntake == 0) return;
+    setState(() => _waterIntake--);
+    _persist();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 138, 104, 35),
-        title: Text('Water Intake Tracker'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              height: 200,
-              child: Stack(
+      appBar: const BrandAppBar(title: 'Water Intake Tracker'),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Center(
-                    child: Image.asset(
-                      'assets/images/water_bottle.png',
-                      fit: BoxFit.cover,
+                  SizedBox(
+                    height: 200,
+                    child: Center(
+                      child: Image.asset(
+                        'assets/images/water_bottle.png',
+                        fit: BoxFit.cover,
+                      ),
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Water Intake: $_waterIntake cups',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      FloatingActionButton(
+                        onPressed: _decrement,
+                        heroTag: 'water_dec',
+                        child: const Icon(Icons.remove),
+                      ),
+                      const SizedBox(width: 16),
+                      FloatingActionButton(
+                        onPressed: _increment,
+                        heroTag: 'water_inc',
+                        child: const Icon(Icons.add),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            SizedBox(height: 16),
-            Text(
-              'Water Intake: $_waterIntake cups',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                FloatingActionButton(
-                  onPressed: _decrementWaterIntake,
-                  child: Icon(Icons.remove),
-                ),
-                SizedBox(width: 16),
-                FloatingActionButton(
-                  onPressed: _incrementWaterIntake,
-                  child: Icon(Icons.add),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

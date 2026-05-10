@@ -1,39 +1,27 @@
-// ignore_for_file: prefer_const_constructors, use_build_context_synchronously, avoid_print
-// ignore_for_file: use_key_in_widget_constructors
-// ignore_for_file: unused_import
-import 'dart:async';
-
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:lap_fitness/home_page.dart';
-import 'package:lap_fitness/main_page.dart';
-import 'package:lap_fitness/loading_page.dart';
-import 'package:lap_fitness/user_info.dart';
+
+import 'core/theme/app_colors.dart';
+import 'core/widgets/primary_button.dart';
+import 'core/widgets/rounded_text_field.dart';
+import 'loading_page.dart';
 
 class RegisterPage extends StatefulWidget {
   final VoidCallback showLoginPage;
-  const RegisterPage({
-    Key? key,
-    required this.showLoginPage,
-  }) : super(key: key);
+  const RegisterPage({Key? key, required this.showLoginPage})
+      : super(key: key);
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  // text controllers
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool isLoading = false;
+  bool _isLoading = false;
   bool _isObscure = true;
-
-  void _toggleObscure() {
-    setState(() {
-      _isObscure = !_isObscure;
-    });
-  }
 
   @override
   void dispose() {
@@ -43,82 +31,66 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  Future<void> signUp() async {
-    if (passwordConfirmed()) {
-      setState(() {
-        isLoading = true;
-      });
-      try {
-        UserCredential userCredential = await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(
-                email: _emailController.text.trim(),
-                password: _passwordController.text.trim());
-        if (userCredential.user != null) {
-          // Navigate to the user info page after successful registration
-          await Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => LoadingPage(
-                welcomeMessage: 'Sucessfully Registered! Welcome!',
-              ),
-            ),
-          );
-        }
-      } on FirebaseAuthException catch (e) {
-        setState(() {
-          isLoading = false;
-        });
-        if (e.code == 'weak-password') {
-          print('The password provided is too weak.');
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                content: Text('The password provided is too weak.'),
-              );
-            },
-          );
-        } else if (e.code == 'email-already-in-use') {
-          print('The account already exists for that email.');
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                content: Text('The account already exists for that email.'),
-              );
-            },
-          );
-        }
-      } catch (e) {
-        print(e);
-      } finally {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: Text('The passwords do not match.'),
-          );
-        },
+  void _toggleObscure() => setState(() => _isObscure = !_isObscure);
+
+  bool get _passwordsMatch =>
+      _passwordController.text.trim() ==
+      _confirmPasswordController.text.trim();
+
+  Future<void> _signUp() async {
+    if (!_passwordsMatch) {
+      _showAlert('The passwords do not match.');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final credential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
+      if (!mounted) return;
+      if (credential.user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const LoadingPage(
+              welcomeMessage: 'Sucessfully Registered! Welcome!',
+            ),
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      if (e.code == 'weak-password') {
+        _showAlert('The password provided is too weak.');
+      } else if (e.code == 'email-already-in-use') {
+        _showAlert('The account already exists for that email.');
+      } else {
+        _showAlert(e.message ?? 'Registration failed.');
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('$e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  bool passwordConfirmed() {
-    if (_passwordController.text.trim() ==
-        _confirmPasswordController.text.trim()) {
-      return true;
-    } else {
-      return false;
-    }
+  void _showAlert(String message) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(content: Text(message)),
+    );
   }
+
+  Widget _obscureToggle() => IconButton(
+        onPressed: _toggleObscure,
+        icon: Icon(
+          _isObscure ? Icons.visibility : Icons.visibility_off,
+          color: Colors.grey[700],
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -126,155 +98,57 @@ class _RegisterPageState extends State<RegisterPage> {
       backgroundColor: Colors.grey[300],
       body: SafeArea(
         child: Center(
-          // ignore: prefer_const_literals_to_create_immutables
           child: SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              // ignore: prefer_const_literals_to_create_immutables, duplicate_ignore
               children: [
                 Image.asset('assets/images/lap2.png', width: 400, height: 400),
-                // Hello Again!
-                SizedBox(height: 20),
-                Text(
+                const SizedBox(height: 20),
+                const Text(
                   'Register below',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(height: 30),
-
-                // email textfield
+                const SizedBox(height: 30),
+                RoundedTextField(
+                  controller: _emailController,
+                  hintText: 'Email',
+                ),
+                const SizedBox(height: 15),
+                RoundedTextField(
+                  controller: _passwordController,
+                  hintText: 'Password',
+                  obscureText: _isObscure,
+                  suffixIcon: _obscureToggle(),
+                ),
+                const SizedBox(height: 15),
+                RoundedTextField(
+                  controller: _confirmPasswordController,
+                  hintText: 'Confirm Password',
+                  obscureText: _isObscure,
+                  suffixIcon: _obscureToggle(),
+                ),
+                const SizedBox(height: 15),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      border: Border.all(color: Colors.white),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 20.0),
-                      child: TextField(
-                          controller: _emailController,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Email',
-                          )),
-                    ),
+                  child: PrimaryButton(
+                    label: 'Sign Up',
+                    onPressed: _isLoading ? null : _signUp,
                   ),
                 ),
-                SizedBox(height: 15),
-
-                //password textfield
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      border: Border.all(color: Colors.white),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 20.0),
-                      child: TextField(
-                        controller: _passwordController,
-                        obscureText: _isObscure,
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Password',
-                          suffixIcon: IconButton(
-                            onPressed: _toggleObscure,
-                            icon: Icon(
-                              _isObscure
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 15),
-
-                //confirm password textfield
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      border: Border.all(color: Colors.white),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 20.0),
-                      child: TextField(
-                        controller: _confirmPasswordController,
-                        obscureText: _isObscure,
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Confirm Password',
-                          suffixIcon: IconButton(
-                            onPressed: _toggleObscure,
-                            icon: Icon(
-                              _isObscure
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 15),
-
-                // sign up button
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: GestureDetector(
-                    onTap: signUp,
-                    child: Container(
-                      padding: EdgeInsets.all(25),
-                      decoration: BoxDecoration(
-                        color: Color.fromARGB(255, 138, 104, 35),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Sign Up',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 25),
-
-                // not a member? register now
+                const SizedBox(height: 25),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  // ignore: prefer_const_literals_to_create_immutables
                   children: [
-                    Text(
+                    const Text(
                       'I am a member!',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     GestureDetector(
                       onTap: widget.showLoginPage,
-                      child: Text(
+                      child: const Text(
                         ' Login now',
                         style: TextStyle(
-                          color: Color.fromARGB(255, 138, 104, 35),
+                          color: AppColors.brand,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

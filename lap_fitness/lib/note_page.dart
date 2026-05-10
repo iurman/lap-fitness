@@ -1,159 +1,115 @@
-// ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, library_private_types_in_public_api, deprecated_member_use
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async';
+
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
+import 'core/theme/app_colors.dart';
+import 'core/widgets/brand_app_bar.dart';
+import 'data/notes_repository.dart';
 
 class NotesPage extends StatefulWidget {
   final DateTime? selectedDate;
   final bool showAppBar;
   final bool showAllNotes;
 
-  NotesPage(
-      {this.selectedDate, this.showAppBar = false, this.showAllNotes = true});
+  const NotesPage({
+    Key? key,
+    this.selectedDate,
+    this.showAppBar = false,
+    this.showAllNotes = true,
+  }) : super(key: key);
 
   @override
-  _NotesPageState createState() => _NotesPageState();
+  State<NotesPage> createState() => _NotesPageState();
 }
 
 class _NotesPageState extends State<NotesPage> {
-  final databaseReference = FirebaseDatabase.instance.reference();
-  User? user = FirebaseAuth.instance.currentUser;
-  List notesList = [];
-
-  get database => null;
-
-  // Function to add a new note to Firebase
-  addNewNote() async {
-    await databaseReference
-        .child("users")
-        .child(user!.uid)
-        .child("notes")
-        .push()
-        .set({
-      "name": "",
-      "content": "",
-      "created_at": DateTime.now().toIso8601String(),
-      "selected_date": widget.selectedDate?.toIso8601String() ?? ''
-    });
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  // Function to update the name of a note in Firebase
-  updateNoteName(String key, String name) async {
-    await databaseReference
-        .child("users")
-        .child(user!.uid)
-        .child("notes")
-        .child(key)
-        .update({"name": name});
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  // Function to update the content of a note in Firebase
-  updateNoteContent(String key, String content) async {
-    await databaseReference
-        .child("users")
-        .child(user!.uid)
-        .child("notes")
-        .child(key)
-        .update({"content": content});
-    setState(() {});
-  }
-
-  // Function to delete a note from Firebase
-  deleteNote(String key) async {
-    await databaseReference
-        .child("users")
-        .child(user!.uid)
-        .child("notes")
-        .child(key)
-        .remove();
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  bool _listenerSet = false;
+  final NotesRepository _repo = NotesRepository();
+  final Map<String, TextEditingController> _titleControllers = {};
+  StreamSubscription<DatabaseEvent>? _sub;
+  List<Map<String, dynamic>> _notesList = [];
 
   @override
   void initState() {
     super.initState();
+    _subscribe();
+  }
 
-    FirebaseAuth.instance.authStateChanges().listen((User? firebaseUser) {
-      if (firebaseUser != null && !_listenerSet) {
-        _listenerSet = true;
-        user = firebaseUser;
-
-        Query query =
-            databaseReference.child("users").child(user!.uid).child("notes");
-
-        if (!widget.showAllNotes && widget.selectedDate != null) {
-          String selectedDateStr = widget.selectedDate!.toIso8601String();
-          query = query
-              .orderByChild("selected_date")
-              .startAt(selectedDateStr)
-              .endAt(widget.selectedDate!
-                  .add(Duration(days: 1))
-                  .toIso8601String());
-        }
-
-        query.onValue.listen((event) {
-          notesList.clear();
-          if (event.snapshot.value != null) {
-            Map<dynamic, dynamic> notesMap =
-                event.snapshot.value as Map<dynamic, dynamic>;
-            notesMap.forEach((key, value) {
-              notesList.add({
-                "key": key,
-                "name": value["name"],
-                "content": value["content"],
-                "created_at": value["created_at"],
-              });
+  void _subscribe() {
+    try {
+      final query = _repo.buildQuery(
+        selectedDate: widget.selectedDate,
+        showAll: widget.showAllNotes,
+      );
+      _sub = query.onValue.listen((event) {
+        final value = event.snapshot.value as Map<dynamic, dynamic>?;
+        final notes = <Map<String, dynamic>>[];
+        if (value != null) {
+          value.forEach((key, v) {
+            notes.add({
+              'key': key,
+              'name': v['name'],
+              'content': v['content'],
+              'created_at': v['created_at'],
             });
-          }
-          if (mounted) {
-            setState(() {});
-          }
-        });
+          });
+        }
+        if (!mounted) return;
+        setState(() => _notesList = notes);
+      });
+    } catch (_) {/* not signed in yet */}
+  }
+
+  TextEditingController _titleControllerFor(String key, String text) {
+    final existing = _titleControllers[key];
+    if (existing != null) {
+      if (existing.text != text && !existing.selection.isValid) {
+        existing.text = text;
       }
-    });
+      return existing;
+    }
+    final controller = TextEditingController(text: text);
+    _titleControllers[key] = controller;
+    return controller;
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    for (final c in _titleControllers.values) {
+      c.dispose();
+    }
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: widget.showAppBar
-          ? AppBar(
-              backgroundColor: Color.fromARGB(255, 138, 104, 35),
-              title: Text(
-                  "Notes for ${DateFormat.yMMMd().format(widget.selectedDate ?? DateTime.now())}"),
+          ? BrandAppBar(
+              title:
+                  'Notes for ${DateFormat.yMMMd().format(widget.selectedDate ?? DateTime.now())}',
               leading: IconButton(
-                icon: Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
               ),
             )
           : null,
       body: GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           childAspectRatio: 0.75,
         ),
-        itemCount: notesList.length,
-        itemBuilder: (BuildContext context, int index) {
+        itemCount: _notesList.length,
+        itemBuilder: (context, index) {
+          final note = _notesList[index];
+          final key = note['key'] as String;
           final titleController =
-              TextEditingController(text: notesList[index]["name"]);
-          titleController.selection = TextSelection.fromPosition(
-              TextPosition(offset: titleController.text.length));
+              _titleControllerFor(key, note['name'] as String? ?? '');
           return Container(
-            margin: EdgeInsets.all(12),
-            padding: EdgeInsets.all(16),
+            margin: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
@@ -161,71 +117,56 @@ class _NotesPageState extends State<NotesPage> {
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.3),
                   blurRadius: 6,
-                  offset: Offset(0, 3),
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Editable name of the note
                 TextFormField(
                   controller: titleController,
-                  decoration: InputDecoration(
-                    hintText: "Title",
+                  decoration: const InputDecoration(
+                    hintText: 'Title',
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.zero,
                   ),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 138, 104, 35),
+                    color: AppColors.brand,
                   ),
-                  onChanged: (value) =>
-                      updateNoteName(notesList[index]["key"], value),
+                  onChanged: (value) => _repo.updateName(key, value),
                 ),
-                SizedBox(height: 12),
-                // Creation date of the note
+                const SizedBox(height: 12),
                 Text(
                   DateFormat.yMd()
                       .add_jm()
-                      .format(DateTime.parse(notesList[index]["created_at"])),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
+                      .format(DateTime.parse(note['created_at'] as String)),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
-                SizedBox(height: 12),
-                // Editable content of the note
+                const SizedBox(height: 12),
                 Expanded(
                   child: TextFormField(
-                    decoration: InputDecoration(
-                      hintText: "Note",
+                    decoration: const InputDecoration(
+                      hintText: 'Note',
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.zero,
                     ),
-                    initialValue: notesList[index]["content"],
-                    onChanged: (value) =>
-                        updateNoteContent(notesList[index]["key"], value),
+                    initialValue: note['content'] as String? ?? '',
+                    onChanged: (value) => _repo.updateContent(key, value),
                     maxLines: null,
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ),
-                // Delete button
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     IconButton(
-                      icon: Icon(Icons.delete),
+                      icon: const Icon(Icons.delete),
                       onPressed: () {
-                        // Delete note from database
-                        deleteNote(notesList[index]["key"]);
-                        if (mounted) {
-                          // Remove note from notesList
-                          setState(() {
-                            notesList.removeAt(index);
-                          });
-                        }
+                        _repo.deleteNote(key);
+                        _titleControllers.remove(key)?.dispose();
                       },
                     ),
                   ],
@@ -236,9 +177,9 @@ class _NotesPageState extends State<NotesPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Color.fromARGB(255, 138, 104, 35),
-        child: Icon(Icons.add),
-        onPressed: () => addNewNote(),
+        backgroundColor: AppColors.brand,
+        onPressed: () => _repo.addNote(widget.selectedDate),
+        child: const Icon(Icons.add),
       ),
     );
   }

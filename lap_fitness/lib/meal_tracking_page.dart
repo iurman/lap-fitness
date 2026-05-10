@@ -1,57 +1,57 @@
-// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, deprecated_member_use, duplicate_ignore, prefer_const_constructors
-
 import 'dart:async';
+
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
+import 'core/theme/app_colors.dart';
+import 'data/meal_repository.dart';
 
 class MealTrackingPage extends StatefulWidget {
+  const MealTrackingPage({Key? key}) : super(key: key);
+
   @override
-  _MealTrackingPageState createState() => _MealTrackingPageState();
+  State<MealTrackingPage> createState() => _MealTrackingPageState();
 }
 
 class _MealTrackingPageState extends State<MealTrackingPage> {
-  final mealNameController = TextEditingController();
-  final proteinController = TextEditingController();
-  final fatController = TextEditingController();
-  final carbsController = TextEditingController();
+  final _mealNameController = TextEditingController();
+  final _proteinController = TextEditingController();
+  final _fatController = TextEditingController();
+  final _carbsController = TextEditingController();
 
-  late DatabaseReference mealsReference;
-
-  List<Map<String, dynamic>> mealJournal = [];
-
-  late StreamSubscription<DatabaseEvent> _streamSubscription;
+  final MealRepository _repo = MealRepository();
+  StreamSubscription<DatabaseEvent>? _sub;
+  List<Map<String, dynamic>> _mealJournal = [];
 
   @override
   void initState() {
     super.initState();
+    _subscribe();
+  }
 
-    // Get the current user ID
-    final currentUserID = FirebaseAuth.instance.currentUser!.uid;
-
-    // Update the meals reference to include the user ID
-    // ignore: deprecated_member_use
-    mealsReference = FirebaseDatabase.instance
-        .reference()
-        .child('meals')
-        .child(currentUserID);
-
-    // Listen to changes in the meals node in Firebase Realtime Database
-    _streamSubscription = mealsReference.onValue.listen((event) {
-      _onMealsUpdate(event.snapshot);
-    });
+  void _subscribe() {
+    try {
+      _sub = _repo.ref.onValue.listen((event) {
+        _onMealsUpdate(event.snapshot);
+      });
+    } catch (_) {/* not signed in */}
   }
 
   @override
   void dispose() {
-    _streamSubscription.cancel();
+    _sub?.cancel();
+    _mealNameController.dispose();
+    _proteinController.dispose();
+    _fatController.dispose();
+    _carbsController.dispose();
     super.dispose();
   }
 
-  void _onMealsUpdate(DataSnapshot dataSnapshot) {
-    final List<Map<String, dynamic>> meals = [];
-    if (dataSnapshot.value != null) {
-      (dataSnapshot.value as Map<dynamic, dynamic>).forEach((key, data) {
+  void _onMealsUpdate(DataSnapshot snapshot) {
+    final meals = <Map<String, dynamic>>[];
+    final value = snapshot.value;
+    if (value is Map) {
+      value.forEach((key, data) {
         meals.add({
           'key': key,
           'name': data['name'],
@@ -60,66 +60,53 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
           'carbs': data['carbs'],
         });
       });
-      setState(() {
-        mealJournal = meals;
-      });
     }
+    if (!mounted) return;
+    setState(() => _mealJournal = meals);
   }
 
-  void deleteMeal(String mealKey) async {
-    await mealsReference.child(mealKey).remove();
-  }
+  Future<void> _deleteMeal(String key) => _repo.deleteMeal(key);
 
-  void submitMealForm() async {
-    // Get the form values
-    final mealName = mealNameController.text;
-    final protein = double.tryParse(proteinController.text) ?? 0.0;
-    final fat = double.tryParse(fatController.text) ?? 0.0;
-    final carbs = double.tryParse(carbsController.text) ?? 0.0;
+  Future<void> _submitMealForm() async {
+    final mealName = _mealNameController.text.trim();
+    final protein = double.tryParse(_proteinController.text) ?? 0.0;
+    final fat = double.tryParse(_fatController.text) ?? 0.0;
+    final carbs = double.tryParse(_carbsController.text) ?? 0.0;
 
-    // Validate the form values
-    if (mealName.isEmpty || protein == 0.0 && fat == 0.0 && carbs == 0.0) {
+    if (mealName.isEmpty || (protein == 0.0 && fat == 0.0 && carbs == 0.0)) {
       return;
     }
 
-    // Add the meal to the journal
-    final meal = {
+    await _repo.addMeal({
       'name': mealName,
       'protein': protein,
       'fat': fat,
       'carbs': carbs,
-    };
-    await mealsReference.push().set(meal);
+    });
 
-    // Clear the form values
-    mealNameController.clear();
-    proteinController.clear();
-    fatController.clear();
-    carbsController.clear();
+    _mealNameController.clear();
+    _proteinController.clear();
+    _fatController.clear();
+    _carbsController.clear();
+  }
+
+  Map<String, double> _totals() {
+    double cal = 0, p = 0, f = 0, c = 0;
+    for (final meal in _mealJournal) {
+      final protein = (meal['protein'] as num?)?.toDouble() ?? 0;
+      final fat = (meal['fat'] as num?)?.toDouble() ?? 0;
+      final carbs = (meal['carbs'] as num?)?.toDouble() ?? 0;
+      cal += 4 * protein + 9 * fat + 4 * carbs;
+      p += protein;
+      f += fat;
+      c += carbs;
+    }
+    return {'calories': cal, 'protein': p, 'fat': f, 'carbs': c};
   }
 
   @override
   Widget build(BuildContext context) {
-    double totalCalories = 0;
-    double totalProtein = 0;
-    double totalFat = 0;
-    double totalCarbs = 0;
-
-    // calculate the total calories, protein, fat, and carbs for the day
-    for (var meal in mealJournal) {
-      final protein = meal['protein'];
-      final fat = meal['fat'];
-      final carbs = meal['carbs'];
-
-      // calculate the calories from the macronutrients using the following formula:
-      // calories = 4 * protein + 9 * fat + 4 * carbs
-      final calories = 4 * protein + 9 * fat + 4 * carbs;
-
-      totalCalories += calories;
-      totalProtein += protein;
-      totalFat += fat;
-      totalCarbs += carbs;
-    }
+    final t = _totals();
 
     return Scaffold(
       body: Column(
@@ -133,57 +120,46 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
                   'Add a meal',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
                 TextFormField(
-                  controller: mealNameController,
-                  decoration: InputDecoration(
-                    labelText: 'Meal name',
-                  ),
+                  controller: _mealNameController,
+                  decoration: const InputDecoration(labelText: 'Meal name'),
                 ),
-                SizedBox(height: 8.0),
+                const SizedBox(height: 8.0),
                 TextFormField(
-                  controller: proteinController,
-                  decoration: InputDecoration(
-                    labelText: 'Protein (g)',
-                  ),
+                  controller: _proteinController,
+                  decoration: const InputDecoration(labelText: 'Protein (g)'),
                   keyboardType: TextInputType.number,
                 ),
-                SizedBox(height: 8.0),
+                const SizedBox(height: 8.0),
                 TextFormField(
-                  controller: fatController,
-                  decoration: InputDecoration(
-                    labelText: 'Fat (g)',
-                  ),
+                  controller: _fatController,
+                  decoration: const InputDecoration(labelText: 'Fat (g)'),
                   keyboardType: TextInputType.number,
                 ),
-                SizedBox(height: 8.0),
+                const SizedBox(height: 8.0),
                 TextFormField(
-                  controller: carbsController,
-                  decoration: InputDecoration(
-                    labelText: 'Carbs (g)',
-                  ),
+                  controller: _carbsController,
+                  decoration: const InputDecoration(labelText: 'Carbs (g)'),
                   keyboardType: TextInputType.number,
                 ),
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
                 Center(
                   child: ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                        Color.fromARGB(255, 138, 104, 35),
-                      ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.brand,
                     ),
-                    onPressed: submitMealForm,
-                    child: Text('Add meal'),
+                    onPressed: _submitMealForm,
+                    child: const Text('Add meal'),
                   ),
                 ),
-                SizedBox(height: 16.0),
-                // show the total calories, protein, fat, and carbs for the day
+                const SizedBox(height: 16.0),
                 Center(
                   child: Text(
-                    'Total Calories: ${totalCalories.toStringAsFixed(2)} cal\n'
-                    'Total Protein: ${totalProtein.toStringAsFixed(2)} g\n'
-                    'Total Fat: ${totalFat.toStringAsFixed(2)} g\n'
-                    'Total Carbs: ${totalCarbs.toStringAsFixed(2)} g',
+                    'Total Calories: ${t['calories']!.toStringAsFixed(2)} cal\n'
+                    'Total Protein: ${t['protein']!.toStringAsFixed(2)} g\n'
+                    'Total Fat: ${t['fat']!.toStringAsFixed(2)} g\n'
+                    'Total Carbs: ${t['carbs']!.toStringAsFixed(2)} g',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -192,29 +168,21 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: mealJournal.length,
-              itemBuilder: (BuildContext context, int index) {
-                final meal = mealJournal[index];
+              itemCount: _mealJournal.length,
+              itemBuilder: (context, index) {
+                final meal = _mealJournal[index];
                 return Dismissible(
-                  key: Key(meal['key']),
-                  onDismissed: (direction) {
-                    deleteMeal(meal['key']);
-                    setState(() {
-                      mealJournal.removeAt(index);
-                    });
-                  },
+                  key: Key(meal['key'] as String),
+                  onDismissed: (_) => _deleteMeal(meal['key'] as String),
                   child: Card(
                     child: ListTile(
-                      title: Text(meal['name']),
+                      title: Text('${meal['name']}'),
                       subtitle: Text(
                         '${meal['protein']}g P | ${meal['fat']}g F | ${meal['carbs']}g C',
                       ),
                       trailing: IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () {
-                          // Delete the meal from Firebase Realtime Database
-                          mealsReference.child(meal['key']).remove();
-                        },
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => _deleteMeal(meal['key'] as String),
                       ),
                     ),
                   ),

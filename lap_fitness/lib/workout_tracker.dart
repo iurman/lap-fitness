@@ -1,23 +1,33 @@
-// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, unused_field, prefer_final_fields, prefer_const_constructors, unused_element, prefer_const_literals_to_create_immutables, sort_child_properties_last
-// ignore_for_file: unused_import
-
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import 'core/theme/app_colors.dart';
+import 'core/widgets/brand_app_bar.dart';
+
 class WorkoutTracker extends StatefulWidget {
+  const WorkoutTracker({Key? key}) : super(key: key);
+
   @override
-  _WorkoutTrackerState createState() => _WorkoutTrackerState();
+  State<WorkoutTracker> createState() => _WorkoutTrackerState();
 }
 
 class _WorkoutTrackerState extends State<WorkoutTracker> {
-  String _currentWorkout = 'Push-ups';
-  String _currentImage = 'assets/images/push-ups.png';
+  static const Map<String, _Workout> _workouts = {
+    'push-ups': _Workout('Push-ups', 'assets/images/push-ups.png'),
+    'squats': _Workout('Squats', 'assets/images/squats.png'),
+    'lunges': _Workout('Lunges', 'assets/images/lunges.png'),
+  };
+
+  String _currentWorkoutKey = 'push-ups';
   int _currentSet = 1;
   int _currentRep = 1;
   int _currentSeconds = 0;
   bool _isRunning = false;
   Timer? _timer;
-  TextEditingController _repController = TextEditingController();
+  final TextEditingController _repController = TextEditingController();
+
+  _Workout get _currentWorkout => _workouts[_currentWorkoutKey]!;
 
   @override
   void dispose() {
@@ -26,23 +36,23 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
     super.dispose();
   }
 
-  void _startTimer() {
+  void _selectWorkout(String key) {
     setState(() {
-      _isRunning = true;
+      _currentWorkoutKey = key;
+      _currentSet = 1;
+      _currentRep = 1;
     });
+  }
 
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        _currentSeconds++;
-      });
+  void _startTimer() {
+    setState(() => _isRunning = true);
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      setState(() => _currentSeconds++);
     });
   }
 
   void _pauseTimer() {
-    setState(() {
-      _isRunning = false;
-    });
-
+    setState(() => _isRunning = false);
     _timer?.cancel();
   }
 
@@ -51,7 +61,6 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
       _currentSeconds = 0;
       _isRunning = false;
     });
-
     _timer?.cancel();
   }
 
@@ -62,21 +71,11 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
     });
   }
 
-  void _nextRep(int rep) {
-    setState(() {
-      _currentRep = rep;
-    });
-  }
-
   void _setReps() {
     final reps = int.tryParse(_repController.text);
-
     if (reps != null) {
-      setState(() {
-        _currentRep = reps;
-      });
+      setState(() => _currentRep = reps);
     }
-
     _repController.clear();
   }
 
@@ -90,15 +89,11 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Workout Tracker'),
-        centerTitle: true,
-        backgroundColor: Color.fromARGB(255, 138, 104, 35),
+      appBar: BrandAppBar(
+        title: 'Workout Tracker',
         leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back),
         ),
       ),
       body: SingleChildScrollView(
@@ -108,112 +103,80 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Select a workout',
-                ),
-                items: [
-                  DropdownMenuItem(
-                    value: 'push-ups',
-                    child: Text('Push-ups'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'squats',
-                    child: Text('Squats'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'lunges',
-                    child: Text('Lunges'),
-                  ),
-                ],
+                value: _currentWorkoutKey,
+                decoration: const InputDecoration(labelText: 'Select a workout'),
+                items: _workouts.entries
+                    .map((e) => DropdownMenuItem(
+                          value: e.key,
+                          child: Text(e.value.label),
+                        ))
+                    .toList(),
                 onChanged: (value) {
-                  setState(() {
-                    _currentWorkout = value!;
-                    switch (value) {
-                      case 'push-ups':
-                        _currentImage = 'assets/images/push-ups.png';
-                        _currentSet = 1;
-                        _currentRep = 1;
-                        break;
-                      case 'squats':
-                        _currentImage = 'assets/images/squats.png';
-                        _currentSet = 1;
-                        _currentRep = 1;
-                        break;
-                      case 'lunges':
-                        _currentImage = 'assets/images/lunges.png';
-                        _currentSet = 1;
-                        _currentRep = 1;
-                    }
-                  });
+                  if (value != null) _selectWorkout(value);
                 },
               ),
-              SizedBox(height: 16),
-              Image.asset(
-                _currentImage,
-                height: 200,
-              ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
+              Image.asset(_currentWorkout.assetPath, height: 200),
+              const SizedBox(height: 16),
               Text(
                 'Set $_currentSet - Rep $_currentRep',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 24),
+                style: const TextStyle(fontSize: 24),
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
               Text(
                 _formatDuration(_currentSeconds),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 48),
+                style: const TextStyle(fontSize: 48),
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton(
-                    onPressed: () {
-                      _resetTimer();
-                    },
-                    icon: Icon(Icons.refresh),
+                    onPressed: _resetTimer,
+                    icon: const Icon(Icons.refresh),
                     tooltip: 'Reset Timer',
                   ),
                 ],
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.brand,
+                ),
                 onPressed: _isRunning ? _pauseTimer : _startTimer,
                 child: Text(_isRunning ? 'Pause' : 'Start'),
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(
-                    Color.fromARGB(255, 138, 104, 35),
-                  ),
-                ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: _nextSet,
-                child: Text('Next Set'),
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(
-                    Color.fromARGB(255, 138, 104, 35),
-                  ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.brand,
                 ),
+                onPressed: _nextSet,
+                child: const Text('Next Set'),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextField(
                 controller: _repController,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Reps',
                   hintText: 'Enter reps for next set',
                 ),
-                onSubmitted: (value) {
-                  _setReps();
-                },
+                onSubmitted: (_) => _setReps(),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
             ],
           ),
         ),
       ),
     );
   }
+}
+
+class _Workout {
+  final String label;
+  final String assetPath;
+  const _Workout(this.label, this.assetPath);
 }

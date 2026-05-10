@@ -1,239 +1,231 @@
-import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:convert';
+
+import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart'; // Import the uuid library
-import 'package:collection/collection.dart';
-import 'privacy_settings_page.dart';
+import 'package:uuid/uuid.dart';
+
+import 'core/theme/app_colors.dart';
+import 'data/feed_repository.dart';
+import 'data/user_repository.dart';
 
 class FeedPage extends StatefulWidget {
+  const FeedPage({Key? key}) : super(key: key);
+
   @override
-  _FeedPageState createState() => _FeedPageState();
+  State<FeedPage> createState() => _FeedPageState();
 }
 
 class _FeedPageState extends State<FeedPage> {
+  static const String _cacheKey = 'feedData';
+
+  final FeedRepository _feed = FeedRepository();
+  final UserRepository _users = UserRepository();
+  final TextEditingController _postController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
   List<Map<String, dynamic>> _feedData = [];
-  TextEditingController _postController = TextEditingController();
-  final DatabaseReference _usersDatabase =
-      FirebaseDatabase.instance.reference().child('users');
-
-  final DatabaseReference _database =
-      FirebaseDatabase.instance.reference().child('feedData');
-
-  ScrollController _scrollController = ScrollController();
+  StreamSubscription<DatabaseEvent>? _addedSub;
+  StreamSubscription<DatabaseEvent>? _removedSub;
 
   @override
   void initState() {
     super.initState();
-    _loadFeedData(); // Load saved data from SharedPreferences
-    _fetchFeedData();
+    _loadCachedFeedData();
+    _subscribeToFeed();
   }
 
   @override
   void dispose() {
+    _addedSub?.cancel();
+    _removedSub?.cancel();
     _postController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  void _loadFeedData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? feedDataJson = prefs.getString('feedData');
-    if (feedDataJson != null) {
-      List<dynamic> feedData = json.decode(feedDataJson);
+  Future<void> _loadCachedFeedData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_cacheKey);
+    if (raw == null) return;
+    try {
+      final decoded = json.decode(raw) as List<dynamic>;
+      if (!mounted) return;
       setState(() {
-        _feedData = feedData.cast<Map<String, dynamic>>();
+        _feedData = decoded.cast<Map<String, dynamic>>();
       });
-    }
+    } catch (_) {/* corrupt cache; ignore */}
   }
 
-  void _fetchFeedData() {
-    _database.onChildAdded.listen((event) {
-      Map<dynamic, dynamic>? data =
-          event.snapshot.value as Map<dynamic, dynamic>?;
-      if (data != null) {
-        setState(() {
-          _feedData.add(data.cast<String, dynamic>());
-        });
-        // Scroll to the most recent post after loading all the posts
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
-        });
-      }
-    }, onError: (error) {
-      print('Error fetching feed data: $error');
+  Future<void> _saveCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_cacheKey, json.encode(_feedData));
+  }
+
+  void _subscribeToFeed() {
+    _addedSub = _feed.onChildAdded.listen((event) {
+      final data = event.snapshot.value as Map<dynamic, dynamic>?;
+      if (data == null) return;
+      final post = data.cast<String, dynamic>();
+      final postId = post['postId'] as String?;
+      if (postId == null) return;
+
+      final exists = _feedData.any((p) => p['postId'] == postId);
+      if (exists) return;
+
+      if (!mounted) return;
+      setState(() => _feedData.add(post));
+      _saveCache();
+      _scrollToBottom();
+    }, onError: (Object e) {
+      if (kDebugMode) debugPrint('Error fetching feed data: $e');
     });
 
-    _database.onChildRemoved.listen((event) {
-      Map<dynamic, dynamic>? data =
-          event.snapshot.value as Map<dynamic, dynamic>?;
-      if (data != null) {
-        setState(() {
-          _feedData.removeWhere((post) => post['postId'] == data['postId']);
-        });
-      }
-    }, onError: (error) {
-      print('Error removing feed data: $error');
+    _removedSub = _feed.onChildRemoved.listen((event) {
+      final data = event.snapshot.value as Map<dynamic, dynamic>?;
+      if (data == null) return;
+      final postId = data['postId'];
+      if (!mounted) return;
+      setState(() => _feedData.removeWhere((post) => post['postId'] == postId));
+      _saveCache();
+    }, onError: (Object e) {
+      if (kDebugMode) debugPrint('Error removing feed data: $e');
     });
   }
 
-  void _saveFeedData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('feedData', json.encode(_feedData));
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    });
   }
 
-  void _addPost(String body, String userId, String postId) async {
-    // Fetch user data
-    String userEmail = FirebaseAuth.instance.currentUser!.email ?? '';
-    bool userPrivateMode = false;
-    await _usersDatabase.child(userId).once().then((DatabaseEvent event) {
-      Map<dynamic, dynamic>? userData =
-          event.snapshot.value as Map<dynamic, dynamic>?;
-      userPrivateMode = userData?['privateMode'] ?? false;
-    });
+  Future<void> _addPost(String body, String userId, String postId) async {
+    final userEmail = FirebaseAuth.instance.currentUser?.email ?? '';
+    bool privateMode = false;
+    try {
+      final profile = await _users.fetchProfileFor(userId);
+      privateMode = profile.privateMode;
+    } catch (_) {/* default to public */}
 
-    // Generate random name
-    String randomName = Uuid().v4();
-
-    DatabaseReference newPostRef = _database.push();
-    Map<String, dynamic> newPost = {
-      'key': newPostRef.key, // Store the Firebase-generated key
+    final ref = _feed.newPostRef();
+    final post = <String, dynamic>{
+      'key': ref.key,
       'userId': userId,
       'postId': postId,
       'body': body,
       'userEmail': userEmail,
-      'displayName': userPrivateMode ? randomName : userEmail,
+      'displayName': privateMode ? const Uuid().v4() : userEmail,
       'liked': false,
-      'comments': [],
+      'comments': <dynamic>[],
     };
 
-    newPostRef.set(newPost).then((value) {
-      print('Post added successfully');
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }).catchError((error) {
-      print('Failed to add post: $error');
-    });
+    try {
+      await _feed.setPost(ref, post);
+      _scrollToBottom();
+    } catch (e) {
+      if (kDebugMode) debugPrint('Failed to add post: $e');
+    }
   }
 
-  void _deletePost(String postId) {
-    String currentUserUid = FirebaseAuth.instance.currentUser!.uid;
+  Future<void> _deletePost(String postId) async {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUid == null) return;
 
-    // Find the post with the matching postId in the _feedData list
-    Map<String, dynamic>? postToDelete =
-        _feedData.firstWhereOrNull((post) => post['postId'] == postId);
+    final post = _feedData.firstWhereOrNull((p) => p['postId'] == postId);
+    if (post == null || post['userId'] != currentUid) return;
 
-    if (postToDelete != null && postToDelete['userId'] == currentUserUid) {
-      DatabaseReference postToRemove = _database.child(postToDelete['key']);
-      postToRemove.remove().then((value) {
-        setState(() {
-          _feedData.removeWhere((post) => post['postId'] == postId);
-        });
-        _saveFeedData();
-        print('Post deleted successfully');
-      }).catchError((error) {
-        print('Error deleting post: $error');
-      });
-    } else {
-      print('You can only delete your own posts');
+    try {
+      await _feed.deletePost(post['key'] as String);
+      if (!mounted) return;
+      setState(() => _feedData.removeWhere((p) => p['postId'] == postId));
+      _saveCache();
+    } catch (e) {
+      if (kDebugMode) debugPrint('Error deleting post: $e');
     }
+  }
+
+  void _confirmDelete(String postId) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Post'),
+        content: const Text('Are you sure you want to delete this post?'),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(ctx),
+          ),
+          TextButton(
+            child: const Text('Delete'),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _deletePost(postId);
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
     return Scaffold(
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
-              controller:
-                  _scrollController, // Assign the scroll controller here
+              controller: _scrollController,
               itemCount: _feedData.length,
               itemBuilder: (context, index) {
-                Map<String, dynamic> post = _feedData[index];
-                bool isCurrentUserPost = post['userId'] ==
-                    FirebaseAuth.instance.currentUser!
-                        .uid; // Check if post is made by current user
+                final post = _feedData[index];
+                final isMine = post['userId'] == currentUid;
                 return ListTile(
-                  title: Text(post['body']),
+                  title: Text('${post['body']}'),
                   subtitle: Text('Posted by ${post['displayName']}'),
-
-                  trailing: isCurrentUserPost
+                  trailing: isMine
                       ? IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: Text('Delete Post'),
-                                  content: Text(
-                                      'Are you sure you want to delete this post?'),
-                                  actions: [
-                                    TextButton(
-                                      child: Text('Cancel'),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                    ),
-                                    TextButton(
-                                      child: Text('Delete'),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        String postId = post['postId'];
-                                        _deletePost(
-                                            postId); // Call _deletePost method with postId as argument
-                                      },
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
+                          icon: const Icon(Icons.delete),
+                          onPressed: () =>
+                              _confirmDelete(post['postId'] as String),
                         )
-                      : null, // Set IconButton to null for posts that are not made by current user
+                      : null,
                 );
               },
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _postController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter post',
-                    ),
+                    decoration: const InputDecoration(hintText: 'Enter post'),
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    String body = _postController.text;
-                    if (body.isNotEmpty) {
-                      String userId = FirebaseAuth.instance.currentUser!.uid;
-                      String postId = Uuid()
-                          .v4(); // Generate a unique ID using uuid library
-                      _addPost(body, userId, postId);
-                      _postController.clear();
-                    }
-                  },
-                  child: Text('Post'),
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                      Color.fromARGB(255, 138, 104, 35),
-                    ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.brand,
                   ),
+                  onPressed: () {
+                    final body = _postController.text;
+                    if (body.isEmpty) return;
+                    final uid = FirebaseAuth.instance.currentUser?.uid;
+                    if (uid == null) return;
+                    _addPost(body, uid, const Uuid().v4());
+                    _postController.clear();
+                  },
+                  child: const Text('Post'),
                 ),
               ],
             ),

@@ -1,101 +1,99 @@
-// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import 'note_page.dart';
 
 class CalendarPage extends StatefulWidget {
+  const CalendarPage({Key? key}) : super(key: key);
+
   @override
-  _CalendarPageState createState() => _CalendarPageState();
+  State<CalendarPage> createState() => _CalendarPageState();
 }
 
 class _CalendarPageState extends State<CalendarPage> {
   DateTime _selectedDate = DateTime.now();
 
+  void _shiftMonth(int delta) {
+    setState(() {
+      _selectedDate =
+          DateTime(_selectedDate.year, _selectedDate.month + delta, 1);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final firstWeekday = _selectedDate.weekday;
+    final daysInMonth =
+        DateTime(_selectedDate.year, _selectedDate.month + 1, 0).day;
+
     return Scaffold(
       body: Column(
         children: [
           Container(
-            margin: EdgeInsets.symmetric(vertical: 10),
+            margin: const EdgeInsets.symmetric(vertical: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 IconButton(
-                  icon: Icon(Icons.arrow_left),
-                  onPressed: () {
-                    setState(() {
-                      _selectedDate = DateTime(
-                          _selectedDate.year, _selectedDate.month - 1, 1);
-                    });
-                  },
+                  icon: const Icon(Icons.arrow_left),
+                  onPressed: () => _shiftMonth(-1),
                 ),
                 Text(
                   DateFormat.yMMMM().format(_selectedDate),
-                  style: TextStyle(fontSize: 20),
+                  style: const TextStyle(fontSize: 20),
                 ),
                 IconButton(
-                  icon: Icon(Icons.arrow_right),
-                  onPressed: () {
-                    setState(() {
-                      _selectedDate = DateTime(
-                          _selectedDate.year, _selectedDate.month + 1, 1);
-                    });
-                  },
+                  icon: const Icon(Icons.arrow_right),
+                  onPressed: () => _shiftMonth(1),
                 ),
               ],
             ),
           ),
           Expanded(
             child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 7, mainAxisSpacing: 10, crossAxisSpacing: 10),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 7,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+              ),
+              itemCount: 42,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               itemBuilder: (context, index) {
-                if (index < _selectedDate.weekday - 1 ||
-                    index >=
-                        _selectedDate.weekday +
-                            DateTime(_selectedDate.year,
-                                    _selectedDate.month + 1, 0)
-                                .day -
-                            1) {
-                  return Container();
-                } else {
-                  return GestureDetector(
-                    // Update the onTap function in GridView.builder
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => NotesPage(
-                            selectedDate: DateTime(
-                              _selectedDate.year,
-                              _selectedDate.month,
-                              index - _selectedDate.weekday + 2,
-                            ),
-                            showAppBar: true,
-                            showAllNotes: false,
+                final dayNumber = index - firstWeekday + 2;
+                if (dayNumber < 1 || dayNumber > daysInMonth) {
+                  return const SizedBox.shrink();
+                }
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => NotesPage(
+                          selectedDate: DateTime(
+                            _selectedDate.year,
+                            _selectedDate.month,
+                            dayNumber,
                           ),
-                        ),
-                      );
-                    },
-
-                    child: Container(
-                      decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(10)),
-                      child: Center(
-                        child: Text(
-                          '${index - _selectedDate.weekday + 2}',
-                          style: TextStyle(fontSize: 18),
+                          showAppBar: true,
+                          showAllNotes: false,
                         ),
                       ),
+                    );
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                  );
-                }
+                    child: Center(
+                      child: Text(
+                        '$dayNumber',
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                );
               },
-              itemCount: 42,
-              padding: EdgeInsets.symmetric(horizontal: 10),
             ),
           ),
         ],

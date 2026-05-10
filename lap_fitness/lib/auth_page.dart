@@ -1,8 +1,7 @@
-// ignore_for_file: prefer_const_constructors
+import 'package:flutter/material.dart';
 
-import "package:flutter/material.dart";
-import "package:lap_fitness/login_page.dart";
-import 'package:lap_fitness/register_page.dart';
+import 'login_page.dart';
+import 'register_page.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({Key? key}) : super(key: key);
@@ -12,22 +11,18 @@ class AuthPage extends StatefulWidget {
 }
 
 class _AuthPageState extends State<AuthPage> {
-  // initially show login page
-  bool showLoginPage = true;
-  bool isLoading = false;
+  bool _showLoginPage = true;
 
-  void toggleScreens() {
+  void _toggleScreens() {
     setState(() {
-      showLoginPage = !showLoginPage;
+      _showLoginPage = !_showLoginPage;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (showLoginPage) {
-      return LoginPage(showRegisterPage: toggleScreens);
-    } else {
-      return RegisterPage(showLoginPage: toggleScreens);
-    }
+    return _showLoginPage
+        ? LoginPage(showRegisterPage: _toggleScreens)
+        : RegisterPage(showLoginPage: _toggleScreens);
   }
 }

@@ -1,8 +1,11 @@
-// ignore_for_file: prefer_const_constructors, use_build_context_synchronously, avoid_print, sort_child_properties_last
+import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
+
+import 'core/theme/app_colors.dart';
+import 'core/widgets/brand_app_bar.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({Key? key}) : super(key: key);
@@ -20,74 +23,66 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     super.dispose();
   }
 
-  Future passwordReset() async {
+  Future<void> _passwordReset() async {
     try {
-      await FirebaseAuth.instance
-          .sendPasswordResetEmail(email: _emailController.text.trim());
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: Text('Password reset link sent to your email'),
-          );
-        },
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: _emailController.text.trim(),
       );
-      Timer(Duration(seconds: 2), () {
-        Navigator.pushReplacementNamed(context, '/');
+      if (!mounted) return;
+      _showAlert('Password reset link sent to your email');
+      Timer(const Duration(seconds: 2), () {
+        if (!mounted) return;
+        Navigator.of(context).pop();
       });
     } on FirebaseAuthException catch (e) {
-      print(e);
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: Text(e.message.toString()),
-          );
-        },
-      );
-      Timer(Duration(seconds: 2), () {
+      if (!mounted) return;
+      if (kDebugMode) debugPrint('$e');
+      _showAlert(e.message ?? 'Could not send reset link.');
+      Timer(const Duration(seconds: 2), () {
+        if (!mounted) return;
         Navigator.of(context).pop();
       });
     }
   }
 
+  void _showAlert(String message) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(content: Text(message)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Forgot Password"),
-        backgroundColor: Color.fromARGB(255, 138, 104, 35),
+      appBar: BrandAppBar(
+        title: 'Forgot Password',
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, '/');
-          },
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25.0),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 25.0),
             child: Text(
-                "Enter your email and we will send you a password reset link"),
+              'Enter your email and we will send you a password reset link',
+            ),
           ),
-
-          SizedBox(height: 15),
-
-          // email textfield
+          const SizedBox(height: 15),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 25.0),
             child: TextField(
               controller: _emailController,
               decoration: InputDecoration(
                 enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white),
+                  borderSide: const BorderSide(color: Colors.white),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: Color.fromARGB(255, 138, 104, 35)),
+                  borderSide: const BorderSide(color: AppColors.brand),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 hintText: 'Email',
@@ -96,13 +91,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
             ),
           ),
-
-          SizedBox(height: 15),
-
+          const SizedBox(height: 15),
           MaterialButton(
-            onPressed: () => passwordReset(),
-            child: Text('Reset Password'),
-            color: Color.fromARGB(255, 138, 104, 35),
+            onPressed: _passwordReset,
+            color: AppColors.brand,
+            child: const Text('Reset Password'),
           ),
         ],
       ),

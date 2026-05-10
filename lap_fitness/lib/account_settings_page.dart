@@ -1,22 +1,27 @@
-// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, use_build_context_synchronously, prefer_const_constructors, sort_child_properties_last
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:lap_fitness/auth_page.dart';
+
+import 'auth_page.dart';
+import 'core/theme/app_colors.dart';
+import 'core/widgets/brand_app_bar.dart';
 
 class AccountSettingsPage extends StatefulWidget {
+  const AccountSettingsPage({Key? key}) : super(key: key);
+
   @override
-  _AccountSettingsPageState createState() => _AccountSettingsPageState();
+  State<AccountSettingsPage> createState() => _AccountSettingsPageState();
 }
 
 class _AccountSettingsPageState extends State<AccountSettingsPage> {
-  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _emailFormKey = GlobalKey<FormState>();
   final _passwordFormKey = GlobalKey<FormState>();
   String? _emailError;
   String? _passwordError;
+
+  static final RegExp _emailRegex =
+      RegExp(r'^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$');
 
   @override
   void dispose() {
@@ -26,84 +31,79 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
   }
 
   Future<void> _changeEmail() async {
-    // Validate the email address
-    if (!_emailFormKey.currentState!.validate()) {
-      return;
-    }
+    if (!_emailFormKey.currentState!.validate()) return;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
     try {
-      // Update the email address
-      await FirebaseAuth.instance.currentUser!
-          .updateEmail(_emailController.text);
-
-      // Show a success message
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Email address updated.')));
-
-      // Clear the form
-      _formKey.currentState!.reset();
+      await user.updateEmail(_emailController.text);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email address updated.')),
+      );
+      _emailFormKey.currentState!.reset();
     } on FirebaseAuthException catch (e) {
-      setState(() {
-        // Update the error message
-        _emailError = e.message;
-      });
+      if (!mounted) return;
+      setState(() => _emailError = e.message);
     }
   }
 
   Future<void> _changePassword() async {
-    // Validate the password
-    if (!_passwordFormKey.currentState!.validate()) {
-      return;
-    }
+    if (!_passwordFormKey.currentState!.validate()) return;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
     try {
-      // Update the password
-      await FirebaseAuth.instance.currentUser!
-          .updatePassword(_passwordController.text);
-
-      // Show a success message
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Password updated.')));
-
-      // Clear the form
-      _formKey.currentState!.reset();
+      await user.updatePassword(_passwordController.text);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password updated.')),
+      );
+      _passwordFormKey.currentState!.reset();
     } on FirebaseAuthException catch (e) {
-      setState(() {
-        // Update the error message
-        _passwordError = e.message;
-      });
+      if (!mounted) return;
+      setState(() => _passwordError = e.message);
     }
   }
 
   Future<void> _deleteAccount() async {
-    // Show a confirmation dialog before deleting the account
-    bool confirmed = await showDialog(
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Delete Account'),
-          content: Text(
-              'Are you sure you want to delete your account? This action cannot be undone.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text('Delete'),
-            ),
-          ],
-        );
-      },
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Account'),
+        content: const Text(
+          'Are you sure you want to delete your account? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
     );
-    // If the user confirms, delete the account and sign out
-    if (confirmed) {
-      await FirebaseAuth.instance.currentUser!.delete();
+    if (confirmed != true) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      await user.delete();
       await FirebaseAuth.instance.signOut();
-      Navigator.pushReplacement(
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => AuthPage()),
+        MaterialPageRoute(builder: (_) => const AuthPage()),
+        (route) => false,
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Could not delete account.')),
       );
     }
   }
@@ -111,29 +111,24 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 138, 104, 35),
-        title: Text('Account Settings'),
-      ),
+      appBar: const BrandAppBar(title: 'Account Settings'),
       body: Center(
         child: SizedBox(
           width: 400,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: 128.0),
+              const SizedBox(height: 128.0),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      Text(
+                      const Text(
                         'Change Email',
-                        style: TextStyle(
-                            color: Color.fromARGB(255, 138, 104, 35),
-                            fontSize: 18),
+                        style: TextStyle(color: AppColors.brand, fontSize: 18),
                       ),
-                      SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0),
                       Form(
                         key: _emailFormKey,
                         child: TextFormField(
@@ -147,52 +142,46 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                             if (value == null || value.isEmpty) {
                               return 'Please enter an email address.';
                             }
-                            if (!RegExp(
-                                    r'^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$')
-                                .hasMatch(value)) {
+                            if (!_emailRegex.hasMatch(value)) {
                               return 'Please enter a valid email address.';
                             }
                             return null;
                           },
                         ),
                       ),
-                      SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0),
                       ElevatedButton(
-                        onPressed: _changeEmail,
-                        child: Text('Change Email'),
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                            Color.fromARGB(255, 138, 104, 35),
-                          ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.brand,
                         ),
+                        onPressed: _changeEmail,
+                        child: const Text('Change Email'),
                       ),
                     ],
                   ),
                 ),
               ),
-              SizedBox(height: 32.0),
+              const SizedBox(height: 32.0),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      Text(
+                      const Text(
                         'Change Password',
-                        style: TextStyle(
-                            color: Color.fromARGB(255, 138, 104, 35),
-                            fontSize: 18),
+                        style: TextStyle(color: AppColors.brand, fontSize: 18),
                       ),
-                      SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0),
                       Form(
                         key: _passwordFormKey,
                         child: TextFormField(
                           controller: _passwordController,
                           obscureText: true,
+                          cursorColor: AppColors.brand,
                           decoration: InputDecoration(
                             labelText: 'New Password',
                             errorText: _passwordError,
                           ),
-                          cursorColor: Color.fromARGB(255, 138, 104, 35),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter a password.';
@@ -204,30 +193,26 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                           },
                         ),
                       ),
-                      SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0),
                       ElevatedButton(
-                        onPressed: _changePassword,
-                        child: Text('Change Password'),
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                            Color.fromARGB(255, 138, 104, 35),
-                          ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.brand,
                         ),
+                        onPressed: _changePassword,
+                        child: const Text('Change Password'),
                       ),
-                      SizedBox(height: 32.0),
+                      const SizedBox(height: 32.0),
                     ],
                   ),
                 ),
               ),
-              SizedBox(height: 32.0),
+              const SizedBox(height: 32.0),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 onPressed: _deleteAccount,
-                child: Text('Delete Account'),
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
-                ),
+                child: const Text('Delete Account'),
               ),
-              Spacer(),
+              const Spacer(),
             ],
           ),
         ),

@@ -1,69 +1,72 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, use_build_context_synchronously
-// ignore_for_file: unused_import
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:lap_fitness/login_page.dart';
-import 'package:lap_fitness/user_info.dart';
-import 'profile_settings_page.dart';
-import 'privacy_settings_page.dart';
+
 import 'account_settings_page.dart';
-import 'package:lap_fitness/auth_page.dart';
+import 'auth_page.dart';
+import 'core/widgets/brand_app_bar.dart';
+import 'privacy_settings_page.dart';
+import 'user_info.dart';
 
 class SettingsPage extends StatelessWidget {
+  const SettingsPage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 138, 104, 35),
-        title: Text('Settings'),
-      ),
+      appBar: const BrandAppBar(title: 'Settings'),
       body: ListView(
         children: [
           ListTile(
-            leading: Icon(Icons.person),
-            title: Text('Profile Settings'),
+            leading: const Icon(Icons.person),
+            title: const Text('Profile Settings'),
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      UserInfoPage(calories: '0', showBackButton: true),
+                  builder: (_) => const UserInfoPage(
+                    calories: '0',
+                    showBackButton: true,
+                  ),
                 ),
               );
             },
           ),
           ListTile(
-            leading: Icon(Icons.privacy_tip),
-            title: Text('Privacy Settings'),
+            leading: const Icon(Icons.privacy_tip),
+            title: const Text('Privacy Settings'),
             onTap: () {
+              final uid = FirebaseAuth.instance.currentUser?.uid;
+              if (uid == null) return;
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => PrivacySettingsPage(
-                      userId: FirebaseAuth.instance.currentUser!.uid),
+                  builder: (_) => PrivacySettingsPage(userId: uid),
                 ),
               );
             },
           ),
           ListTile(
-            leading: Icon(Icons.account_circle),
-            title: Text('Account Settings'),
+            leading: const Icon(Icons.account_circle),
+            title: const Text('Account Settings'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => AccountSettingsPage()),
+                MaterialPageRoute(
+                  builder: (_) => const AccountSettingsPage(),
+                ),
               );
             },
           ),
           ListTile(
-            leading: Icon(Icons.logout),
-            title: Text('Sign Out'),
+            leading: const Icon(Icons.logout),
+            title: const Text('Sign Out'),
             onTap: () async {
               await FirebaseAuth.instance.signOut();
-              Navigator.push(
+              if (!context.mounted) return;
+              Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => AuthPage()),
+                MaterialPageRoute(builder: (_) => const AuthPage()),
+                (route) => false,
               );
             },
           ),
