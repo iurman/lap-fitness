@@ -15,7 +15,7 @@ html {
 }
 
 body {
-  background-color: #090d1a;
+  background-color: #0d0b08;
   color: #f1f5f9;
   font-family: "Inter", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -23,7 +23,7 @@ body {
 }
 
 ::selection {
-  background-color: rgba(74, 222, 128, 0.25);
+  background-color: rgba(212, 146, 26, 0.25);
   color: #f1f5f9;
 }
 
@@ -32,11 +32,11 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #090d1a;
+  background: #0d0b08;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e2d4a;
+  background: #3a2e1a;
   border-radius: 3px;
 }
 
