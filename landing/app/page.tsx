@@ -75,16 +75,14 @@ export default function Home() {
       <main>
         {/* Hero */}
         <section className="relative pt-32 pb-24 px-6 overflow-hidden">
-          {/* Glow background */}
           <div
             aria-hidden="true"
             className="absolute inset-0 pointer-events-none"
             style={{
               background:
-                "radial-gradient(ellipse 70% 40% at 50% 0%, rgba(74,222,128,0.10) 0%, transparent 70%)",
+                "radial-gradient(ellipse 70% 40% at 50% 0%, rgba(212,146,26,0.12) 0%, transparent 70%)",
             }}
           />
-          {/* Subtle grid */}
           <div
             aria-hidden="true"
             className="absolute inset-0 pointer-events-none opacity-[0.03]"
@@ -142,7 +140,7 @@ export default function Home() {
               <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
                 Everything you need to crush your goals
               </h2>
-              <p className="text-muted text-lg max-w-xl mx-auto text-balance">
+              <p className="text-muted text-lg max-w-2xl mx-auto">
                 Purpose-built tools that work together — no juggling five different apps.
               </p>
             </div>
@@ -178,15 +176,14 @@ export default function Home() {
 
             <div className="grid sm:grid-cols-3 gap-8">
               {steps.map((step, i) => (
-                <div key={step.number} className="relative text-center sm:text-left">
-                  {/* connector line */}
+                <div key={step.number} className="relative text-center">
                   {i < steps.length - 1 && (
                     <div
                       aria-hidden="true"
-                      className="hidden sm:block absolute top-5 left-[calc(50%+2rem)] right-0 h-px bg-gradient-to-r from-accent/30 to-transparent"
+                      className="hidden sm:block absolute top-5 left-[calc(50%+2.5rem)] right-[-1rem] h-px bg-gradient-to-r from-accent/40 to-transparent"
                     />
                   )}
-                  <div className="text-5xl font-black text-accent/15 mb-4 leading-none">
+                  <div className="text-5xl font-black text-accent/30 mb-4 leading-none">
                     {step.number}
                   </div>
                   <h3 className="font-semibold text-white mb-2">{step.title}</h3>
@@ -204,7 +201,7 @@ export default function Home() {
             className="absolute inset-0 pointer-events-none"
             style={{
               background:
-                "radial-gradient(ellipse 60% 50% at 50% 100%, rgba(74,222,128,0.08) 0%, transparent 70%)",
+                "radial-gradient(ellipse 60% 50% at 50% 100%, rgba(212,146,26,0.10) 0%, transparent 70%)",
             }}
           />
           <div className="relative max-w-2xl mx-auto text-center">
