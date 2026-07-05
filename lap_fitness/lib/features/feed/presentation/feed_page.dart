@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../../core/providers.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../profile/data/profile_repository.dart';
@@ -67,12 +68,16 @@ class _FeedPageState extends ConsumerState<FeedPage> {
           curve: Curves.easeInOut,
         );
       });
+    }, onError: (Object error, StackTrace stackTrace) {
+      appLogger.warning('Error fetching feed data', error, stackTrace);
     });
 
     _feedRepo.onPostRemoved().listen((postId) {
       setState(() {
         _feedData.removeWhere((post) => post.postId == postId);
       });
+    }, onError: (Object error, StackTrace stackTrace) {
+      appLogger.warning('Error removing feed data', error, stackTrace);
     });
   }
 

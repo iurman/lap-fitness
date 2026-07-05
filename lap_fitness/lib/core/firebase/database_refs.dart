@@ -17,7 +17,7 @@ class DatabaseRefs {
 
   DatabaseReference meals(String uid) => root.child('meals').child(uid);
 
-  /// Global water intake node, shared across all users. This is a known bug
-  /// (see the modernization plan) fixed in a later phase by scoping it per-user.
-  DatabaseReference waterIntake() => root.child('waterIntake');
+  /// Per-user water intake node at `/users/{uid}/waterIntake`. Previously this
+  /// lived at a global `/waterIntake` path shared across every account.
+  DatabaseReference waterIntake(String uid) => user(uid).child('waterIntake');
 }

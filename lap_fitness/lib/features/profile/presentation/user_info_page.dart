@@ -119,6 +119,10 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
                 ),
                 SizedBox(height: 16),
                 DropdownButtonFormField<String>(
+                  // `value` keeps this dropdown controlled so it reflects the
+                  // profile loaded asynchronously; initialValue would only apply
+                  // once and miss the prefill.
+                  // ignore: deprecated_member_use
                   value: _selectedGender,
                   hint: Text('Select Gender'),
                   onChanged: (String? newValue) {

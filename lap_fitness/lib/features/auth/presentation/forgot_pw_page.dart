@@ -33,27 +33,27 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           .read(authRepositoryProvider)
           .sendPasswordReset(_emailController.text);
       if (!mounted) return;
-      showDialog(
+      unawaited(showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
             content: Text('Password reset link sent to your email'),
           );
         },
-      );
+      ));
       Timer(Duration(seconds: 2), () {
         if (mounted) context.pop();
       });
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      showDialog(
+      unawaited(showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
             content: Text(e.message.toString()),
           );
         },
-      );
+      ));
       Timer(Duration(seconds: 2), () {
         if (mounted) context.pop();
       });

@@ -1,13 +1,15 @@
 // ignore_for_file: prefer_const_constructors
 
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../core/providers.dart';
+import '../../../core/theme/app_colors.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -42,10 +44,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         message = 'Error: Incorrect password entered. Please try again.';
       }
       if (!mounted) return;
-      showDialog(
+      unawaited(showDialog(
         context: context,
         builder: (context) => AlertDialog(content: Text(message)),
-      );
+      ));
     } finally {
       if (mounted) {
         setState(() {
