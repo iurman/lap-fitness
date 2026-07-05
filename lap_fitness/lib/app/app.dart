@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../features/auth/presentation/main_page.dart';
+import 'router.dart';
 
 final customThemeData = ThemeData(
   primaryColor: const Color.fromARGB(255, 138, 104, 35),
 );
 
-/// Root application widget: the [MaterialApp] and its theme.
-class MyApp extends StatelessWidget {
+/// Root application widget: the routed [MaterialApp] and its theme.
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       theme: customThemeData,
-      home: const MainPage(),
+      routerConfig: router,
     );
   }
 }

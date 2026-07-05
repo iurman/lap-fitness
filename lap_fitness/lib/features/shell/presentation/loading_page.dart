@@ -1,68 +1,52 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../core/firebase/database_refs.dart';
-import '../../auth/data/auth_repository.dart';
-import '../../profile/data/profile_repository.dart';
-import '../../profile/presentation/user_info_page.dart';
-import 'home_shell.dart';
+import '../../../app/router.dart';
+import '../../../core/providers.dart';
 
-class LoadingPage extends StatefulWidget {
-  final String welcomeMessage;
-
-  const LoadingPage({super.key, required this.welcomeMessage});
+/// Splash gate shown right after sign-in: decides between onboarding and home
+/// based on whether the user's profile is complete.
+class LoadingPage extends ConsumerStatefulWidget {
+  const LoadingPage({super.key});
 
   @override
-  State<LoadingPage> createState() => _LoadingPageState();
+  ConsumerState<LoadingPage> createState() => _LoadingPageState();
 }
 
-class _LoadingPageState extends State<LoadingPage> {
-  final _authRepo = AuthRepository(FirebaseAuth.instance);
-  final _profileRepo = ProfileRepository(DatabaseRefs(FirebaseDatabase.instance));
-
+class _LoadingPageState extends ConsumerState<LoadingPage> {
   @override
   void initState() {
     super.initState();
-    _routeToNextScreen();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _routeToNextScreen());
   }
 
   Future<void> _routeToNextScreen() async {
     try {
-      final uid = _authRepo.currentUid;
-      final profile = uid == null ? null : await _profileRepo.getProfile(uid);
+      final uid = ref.read(authRepositoryProvider).currentUid;
+      final profile = uid == null
+          ? null
+          : await ref.read(profileRepositoryProvider).getProfile(uid);
       if (!mounted) return;
-      if (profile != null && profile.isComplete) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => UserInfoPage(
-                calories: widget.welcomeMessage, showBackButton: false),
-          ),
-        );
-      }
+      context.go(
+          profile != null && profile.isComplete ? Routes.home : Routes.onboarding);
     } catch (_) {
-      // handle error
+      if (mounted) context.go(Routes.onboarding);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(
+            CircularProgressIndicator(
               color: Color.fromARGB(255, 138, 104, 35),
             ),
-            const SizedBox(height: 16),
-            Text(widget.welcomeMessage),
+            SizedBox(height: 16),
+            Text('Loading...'),
           ],
         ),
       ),

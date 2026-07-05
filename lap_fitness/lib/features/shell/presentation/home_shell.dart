@@ -1,15 +1,13 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../feed/presentation/feed_page.dart';
 import '../../meals/presentation/meal_tracking_page.dart';
 import '../../notes/presentation/calendar_page.dart';
 import '../../notes/presentation/notes_page.dart';
-import '../../profile/presentation/user_info_page.dart';
-import '../../settings/presentation/settings_page.dart';
-import '../../water/presentation/water_tracker_page.dart';
 import '../../workout/presentation/workout_tracker_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -20,7 +18,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final user = FirebaseAuth.instance.currentUser!;
   int _selectedIndex = 2;
 
   static final List<Map<String, dynamic>> _sections = [
@@ -64,14 +61,7 @@ class _HomePageState extends State<HomePage> {
         actions: _selectedIndex == 2
             ? [
                 IconButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SettingsPage(),
-                      ),
-                    );
-                  },
+                  onPressed: () => context.push(Routes.settings),
                   icon: Icon(
                     Icons.settings,
                     color: Colors.white,
@@ -105,14 +95,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   SizedBox(height: 16),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => UserInfoPage(),
-                        ),
-                      );
-                    },
+                    onTap: () => context.push(Routes.editProfile),
                     child: Container(
                       width: double.infinity,
                       padding: EdgeInsets.all(24),
@@ -159,14 +142,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   SizedBox(height: 16),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => WorkoutTracker(),
-                        ),
-                      );
-                    },
+                    onTap: () => context.push(Routes.workout),
                     child: Container(
                       width: double.infinity,
                       padding: EdgeInsets.all(24),
@@ -214,14 +190,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   SizedBox(height: 16),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => WaterTracker(),
-                        ),
-                      );
-                    },
+                    onTap: () => context.push(Routes.water),
                     child: Container(
                       width: double.infinity,
                       padding: EdgeInsets.all(24),

@@ -1,31 +1,31 @@
-// ignore_for_file: library_private_types_in_public_api, unused_field, prefer_const_constructors, sort_child_properties_last
+// ignore_for_file: prefer_const_constructors, sort_child_properties_last
 
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../core/firebase/database_refs.dart';
-import '../../auth/data/auth_repository.dart';
-import '../../shell/presentation/home_shell.dart';
-import '../data/profile_repository.dart';
+import '../../../app/router.dart';
+import '../../../core/providers.dart';
 import '../domain/user_profile.dart';
 
-class UserInfoPage extends StatefulWidget {
-  final String? calories;
-  final bool showBackButton; // Add a new parameter to control the back button
+class UserInfoPage extends ConsumerStatefulWidget {
+  /// When true this is the first-time onboarding flow (no back button, saving
+  /// advances to home). When false it edits an existing profile (has a back
+  /// button, saving pops).
+  final bool isOnboarding;
 
-  const UserInfoPage({super.key, this.calories, this.showBackButton = false});
+  const UserInfoPage({super.key, this.isOnboarding = false});
 
   @override
-  _UserInfoPageState createState() => _UserInfoPageState();
+  ConsumerState<UserInfoPage> createState() => _UserInfoPageState();
 }
 
-class _UserInfoPageState extends State<UserInfoPage> {
+class _UserInfoPageState extends ConsumerState<UserInfoPage> {
   final _ageController = TextEditingController();
-  final _genderController = TextEditingController();
   final _weightController = TextEditingController();
-  final _heightController = TextEditingController();
   final _calorieController = TextEditingController();
   final _heightFeetController = TextEditingController();
   final _heightInchesController = TextEditingController();
@@ -34,21 +34,16 @@ class _UserInfoPageState extends State<UserInfoPage> {
   String? _selectedGender;
   final List<String> _genders = ['Male', 'Female', 'Non-binary', 'Other'];
 
-  late final _caloriesController = TextEditingController(
-      text: widget
-          .calories); // Assign the passed calorie amount to a new controller
-
-  final _authRepo = AuthRepository(FirebaseAuth.instance);
-  final _profileRepo =
-      ProfileRepository(DatabaseRefs(FirebaseDatabase.instance));
   late final String _uid;
+  StreamSubscription<UserProfile>? _profileSub;
 
   @override
   void initState() {
     super.initState();
-    _uid = _authRepo.currentUid!;
+    _uid = ref.read(authRepositoryProvider).currentUid!;
 
-    _profileRepo.watchProfile(_uid).listen((profile) {
+    _profileSub =
+        ref.read(profileRepositoryProvider).watchProfile(_uid).listen((profile) {
       if (!mounted) return;
       setState(() {
         _ageController.text = profile.age;
@@ -63,16 +58,16 @@ class _UserInfoPageState extends State<UserInfoPage> {
 
   @override
   void dispose() {
+    _profileSub?.cancel();
     _ageController.dispose();
-    _genderController.dispose();
     _weightController.dispose();
-    _heightFeetController.dispose(); // Dispose of the new controller
-    _heightInchesController.dispose(); // Dispose of the new controller
+    _heightFeetController.dispose();
+    _heightInchesController.dispose();
     _calorieController.dispose();
     super.dispose();
   }
 
-  void _saveUserInfo() {
+  Future<void> _saveUserInfo() async {
     final profile = UserProfile(
       age: _ageController.text,
       gender: _selectedGender ?? '',
@@ -82,17 +77,23 @@ class _UserInfoPageState extends State<UserInfoPage> {
       calories: _calorieController.text,
     );
 
-    _profileRepo.saveProfile(_uid, profile).then((_) {
+    try {
+      await ref.read(profileRepositoryProvider).saveProfile(_uid, profile);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('User info saved successfully.'),
       ));
-    }).catchError((error) {
+      if (widget.isOnboarding) {
+        context.go(Routes.home);
+      } else {
+        context.pop();
+      }
+    } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Failed to save user info: $error'),
       ));
-    });
+    }
   }
 
   @override
@@ -101,8 +102,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
         appBar: AppBar(
           backgroundColor: Color.fromARGB(255, 138, 104, 35),
           title: Text('User Info'),
-          automaticallyImplyLeading:
-              widget.showBackButton, // Control the back button visibility
+          automaticallyImplyLeading: !widget.isOnboarding,
         ),
         body: Padding(
           padding: EdgeInsets.all(16),
@@ -131,9 +131,6 @@ class _UserInfoPageState extends State<UserInfoPage> {
                     }
                     return null;
                   },
-                  onSaved: (value) {
-                    _genderController.text = value ?? '';
-                  },
                   items: _genders.map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
@@ -141,36 +138,29 @@ class _UserInfoPageState extends State<UserInfoPage> {
                     );
                   }).toList(),
                 ),
-
                 SizedBox(height: 16),
                 Text('Weight'),
-                // Weight TextFormField
                 TextFormField(
-                  controller: _weightController, // Add the controller here
+                  controller: _weightController,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: InputDecoration(
                     hintText: 'Weight',
                     suffixIcon: Padding(
-                      padding: const EdgeInsets.only(
-                          left: 8.0), // Adjust the padding as needed
+                      padding: const EdgeInsets.only(left: 8.0),
                       child: Text('lbs'),
                     ),
                   ),
-                  // Implement the validator and onSaved logic
                 ),
-
                 SizedBox(height: 16),
                 Text('Height'),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     SizedBox(
-                      width: MediaQuery.of(context).size.width *
-                          0.4, // Adjust the width as needed
+                      width: MediaQuery.of(context).size.width * 0.4,
                       child: TextFormField(
-                        controller:
-                            _heightFeetController, // Add the controller here
+                        controller: _heightFeetController,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly
@@ -178,20 +168,16 @@ class _UserInfoPageState extends State<UserInfoPage> {
                         decoration: InputDecoration(
                           hintText: 'Feet',
                           suffixIcon: Padding(
-                            padding: const EdgeInsets.only(
-                                left: 8.0), // Adjust the padding as needed
+                            padding: const EdgeInsets.only(left: 8.0),
                             child: Text('ft'),
                           ),
                         ),
-                        // Implement the validator and onSaved logic
                       ),
                     ),
                     SizedBox(
-                      width: MediaQuery.of(context).size.width *
-                          0.4, // Adjust the width as needed
+                      width: MediaQuery.of(context).size.width * 0.4,
                       child: TextFormField(
-                        controller:
-                            _heightInchesController, // Add the controller here
+                        controller: _heightInchesController,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly
@@ -199,12 +185,10 @@ class _UserInfoPageState extends State<UserInfoPage> {
                         decoration: InputDecoration(
                           hintText: 'Inches',
                           suffixIcon: Padding(
-                            padding: const EdgeInsets.only(
-                                left: 8.0), // Adjust the padding as needed
+                            padding: const EdgeInsets.only(left: 8.0),
                             child: Text('in'),
                           ),
                         ),
-                        // Implement the validator and onSaved logic
                       ),
                     ),
                   ],
@@ -220,20 +204,12 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      // Save the user's information
                       _saveUserInfo();
-
-                      // Navigate to the Home page
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) => HomePage()),
-                        (Route<dynamic> route) => false,
-                      );
                     }
                   },
                   child: Text('Save'),
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       Color.fromARGB(255, 138, 104, 35),
                     ),
                   ),

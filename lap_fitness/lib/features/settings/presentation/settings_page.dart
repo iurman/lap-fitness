@@ -1,18 +1,15 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, use_build_context_synchronously
+// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../auth/data/auth_repository.dart';
-import '../../auth/presentation/auth_page.dart';
-import '../../profile/presentation/user_info_page.dart';
-import 'account_settings_page.dart';
-import 'privacy_settings_page.dart';
+import '../../../app/router.dart';
+import '../../../core/providers.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
-    final authRepo = AuthRepository(FirebaseAuth.instance);
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 138, 104, 35),
@@ -23,49 +20,24 @@ class SettingsPage extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.person),
             title: Text('Profile Settings'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      UserInfoPage(calories: '0', showBackButton: true),
-                ),
-              );
-            },
+            onTap: () => context.push(Routes.editProfile),
           ),
           ListTile(
             leading: Icon(Icons.privacy_tip),
             title: Text('Privacy Settings'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      PrivacySettingsPage(userId: authRepo.currentUid!),
-                ),
-              );
-            },
+            onTap: () => context.push(Routes.privacy),
           ),
           ListTile(
             leading: Icon(Icons.account_circle),
             title: Text('Account Settings'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AccountSettingsPage()),
-              );
-            },
+            onTap: () => context.push(Routes.account),
           ),
           ListTile(
             leading: Icon(Icons.logout),
             title: Text('Sign Out'),
-            onTap: () async {
-              await authRepo.signOut();
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AuthPage()),
-              );
-            },
+            // Signing out flips the auth state; the router redirect sends us
+            // back to /login automatically.
+            onTap: () => ref.read(authRepositoryProvider).signOut(),
           ),
         ],
       ),

@@ -2,31 +2,33 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/firebase/database_refs.dart';
+import '../../../core/providers.dart';
 import '../../auth/data/auth_repository.dart';
 import '../data/notes_repository.dart';
 import '../domain/note.dart';
 
-class NotesPage extends StatefulWidget {
+class NotesPage extends ConsumerStatefulWidget {
   final DateTime? selectedDate;
   final bool showAppBar;
   final bool showAllNotes;
 
   NotesPage(
-      {this.selectedDate, this.showAppBar = false, this.showAllNotes = true});
+      {super.key,
+      this.selectedDate,
+      this.showAppBar = false,
+      this.showAllNotes = true});
 
   @override
-  _NotesPageState createState() => _NotesPageState();
+  ConsumerState<NotesPage> createState() => _NotesPageState();
 }
 
-class _NotesPageState extends State<NotesPage> {
-  final AuthRepository _authRepo = AuthRepository(FirebaseAuth.instance);
-  final NotesRepository _notesRepo =
-      NotesRepository(DatabaseRefs(FirebaseDatabase.instance));
+class _NotesPageState extends ConsumerState<NotesPage> {
+  AuthRepository get _authRepo => ref.read(authRepositoryProvider);
+  NotesRepository get _notesRepo => ref.read(notesRepositoryProvider);
   List<Note> notesList = [];
   StreamSubscription<List<Note>>? _notesSub;
   bool _listenerSet = false;

@@ -1,34 +1,31 @@
 import 'dart:convert';
 
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../core/firebase/database_refs.dart';
+import '../../../core/providers.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../profile/data/profile_repository.dart';
 import '../data/feed_repository.dart';
 import '../domain/post.dart';
 
-class FeedPage extends StatefulWidget {
+class FeedPage extends ConsumerStatefulWidget {
   const FeedPage({super.key});
 
   @override
-  State<FeedPage> createState() => _FeedPageState();
+  ConsumerState<FeedPage> createState() => _FeedPageState();
 }
 
-class _FeedPageState extends State<FeedPage> {
+class _FeedPageState extends ConsumerState<FeedPage> {
   List<Post> _feedData = [];
   final TextEditingController _postController = TextEditingController();
-  final AuthRepository _authRepo = AuthRepository(FirebaseAuth.instance);
-  final FeedRepository _feedRepo =
-      FeedRepository(DatabaseRefs(FirebaseDatabase.instance));
-  final ProfileRepository _profileRepo =
-      ProfileRepository(DatabaseRefs(FirebaseDatabase.instance));
-
   final ScrollController _scrollController = ScrollController();
+
+  AuthRepository get _authRepo => ref.read(authRepositoryProvider);
+  FeedRepository get _feedRepo => ref.read(feedRepositoryProvider);
+  ProfileRepository get _profileRepo => ref.read(profileRepositoryProvider);
 
   @override
   void initState() {

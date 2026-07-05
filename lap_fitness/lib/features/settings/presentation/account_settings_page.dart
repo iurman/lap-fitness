@@ -2,22 +2,22 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../auth/data/auth_repository.dart';
-import '../../auth/presentation/auth_page.dart';
+import '../../../core/providers.dart';
 
-class AccountSettingsPage extends StatefulWidget {
+class AccountSettingsPage extends ConsumerStatefulWidget {
   @override
-  _AccountSettingsPageState createState() => _AccountSettingsPageState();
+  ConsumerState<AccountSettingsPage> createState() =>
+      _AccountSettingsPageState();
 }
 
-class _AccountSettingsPageState extends State<AccountSettingsPage> {
+class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _emailFormKey = GlobalKey<FormState>();
   final _passwordFormKey = GlobalKey<FormState>();
-  final _authRepo = AuthRepository(FirebaseAuth.instance);
   String? _emailError;
   String? _passwordError;
 
@@ -37,7 +37,9 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
     try {
       // Send a verification link to the new address; the change is applied
       // once the user confirms. `updateEmail` was removed in firebase_auth 6.x.
-      await _authRepo.verifyBeforeUpdateEmail(_emailController.text);
+      await ref
+          .read(authRepositoryProvider)
+          .verifyBeforeUpdateEmail(_emailController.text);
 
       // Show a success message
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -61,7 +63,9 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
 
     try {
       // Update the password
-      await _authRepo.updatePassword(_passwordController.text);
+      await ref
+          .read(authRepositoryProvider)
+          .updatePassword(_passwordController.text);
 
       // Show a success message
       ScaffoldMessenger.of(context)
@@ -101,12 +105,9 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
     );
     // If the user confirms, delete the account and sign out
     if (confirmed) {
-      await _authRepo.deleteAccount();
-      await _authRepo.signOut();
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => AuthPage()),
-      );
+      // After deletion the auth state change drives the router back to /login.
+      await ref.read(authRepositoryProvider).deleteAccount();
+      await ref.read(authRepositoryProvider).signOut();
     }
   }
 

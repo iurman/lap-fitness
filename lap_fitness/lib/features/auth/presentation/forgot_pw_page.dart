@@ -1,22 +1,24 @@
-// ignore_for_file: prefer_const_constructors, use_build_context_synchronously, avoid_print, sort_child_properties_last
+// ignore_for_file: prefer_const_constructors, use_build_context_synchronously, sort_child_properties_last
 
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../data/auth_repository.dart';
+import '../../../core/providers.dart';
 
-class ForgotPasswordPage extends StatefulWidget {
+class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({super.key});
 
   @override
-  State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
+  ConsumerState<ForgotPasswordPage> createState() =>
+      _ForgotPasswordPageState();
 }
 
-class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
+class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   final _emailController = TextEditingController();
-  final _authRepo = AuthRepository(FirebaseAuth.instance);
 
   @override
   void dispose() {
@@ -24,9 +26,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     super.dispose();
   }
 
-  Future passwordReset() async {
+  Future<void> passwordReset() async {
     try {
-      await _authRepo.sendPasswordReset(_emailController.text);
+      await ref
+          .read(authRepositoryProvider)
+          .sendPasswordReset(_emailController.text);
+      if (!mounted) return;
       showDialog(
         context: context,
         builder: (context) {
@@ -36,10 +41,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         },
       );
       Timer(Duration(seconds: 2), () {
-        Navigator.pushReplacementNamed(context, '/');
+        if (mounted) context.pop();
       });
     } on FirebaseAuthException catch (e) {
-      print(e);
+      if (!mounted) return;
       showDialog(
         context: context,
         builder: (context) {
@@ -49,7 +54,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         },
       );
       Timer(Duration(seconds: 2), () {
-        Navigator.of(context).pop();
+        if (mounted) context.pop();
       });
     }
   }
@@ -62,9 +67,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         backgroundColor: Color.fromARGB(255, 138, 104, 35),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, '/');
-          },
+          onPressed: () => context.pop(),
         ),
       ),
       body: Column(

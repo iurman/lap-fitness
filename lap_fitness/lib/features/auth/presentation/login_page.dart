@@ -1,28 +1,23 @@
-// ignore_for_file: prefer_const_constructors, use_build_context_synchronously, avoid_print
-
-import 'dart:async';
+// ignore_for_file: prefer_const_constructors
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../data/auth_repository.dart';
-import '../../shell/presentation/home_shell.dart';
-import '../../shell/presentation/loading_page.dart';
-import 'forgot_pw_page.dart';
+import '../../../app/router.dart';
+import '../../../core/providers.dart';
 
-class LoginPage extends StatefulWidget {
-  final VoidCallback showRegisterPage;
-  const LoginPage({super.key, required this.showRegisterPage});
+class LoginPage extends ConsumerStatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  // text controllers
+class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authRepo = AuthRepository(FirebaseAuth.instance);
   bool _passwordVisible = false;
   bool isLoading = false;
 
@@ -32,58 +27,30 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      UserCredential userCredential = await _authRepo.signIn(
-        _emailController.text,
-        _passwordController.text,
-      );
-
-      if (userCredential.user != null) {
-        await Future.delayed(Duration(milliseconds: 500)); // wait for 500ms
-
-        await Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => LoadingPage(
-              welcomeMessage: 'Welcome!',
-            ),
-          ),
-        );
-
-        Timer(Duration(seconds: 2), () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomePage(),
-            ),
+      // On success the auth state change drives the router redirect from
+      // /login to /loading, so no explicit navigation is needed here.
+      await ref.read(authRepositoryProvider).signIn(
+            _emailController.text,
+            _passwordController.text,
           );
-        });
-      }
     } on FirebaseAuthException catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-
       String message = 'Error: Could not sign in. Please try again later.';
-
       if (e.code == 'user-not-found') {
         message = 'Error: No user found with this email address.';
       } else if (e.code == 'wrong-password') {
         message = 'Error: Incorrect password entered. Please try again.';
       }
-
-      print(e);
+      if (!mounted) return;
       showDialog(
         context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: Text(message),
-          );
-        },
+        builder: (context) => AlertDialog(content: Text(message)),
       );
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -100,14 +67,11 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: Colors.grey[300],
       body: SafeArea(
         child: Center(
-          // ignore: prefer_const_literals_to_create_immutables
           child: SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              // ignore: prefer_const_literals_to_create_immutables
               children: [
                 Image.asset('assets/images/lap2.png', width: 400, height: 400),
-                // Hello Again!
                 SizedBox(height: 0),
                 Text(
                   'Welcome back!',
@@ -184,16 +148,7 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       GestureDetector(
-                        onTap: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return ForgotPasswordPage();
-                              },
-                            ),
-                          );
-                        },
+                        onTap: () => context.push(Routes.forgotPassword),
                         child: Text(
                           'Forgot Password?',
                           style: TextStyle(
@@ -237,7 +192,6 @@ class _LoginPageState extends State<LoginPage> {
                 // not a member? register now
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  // ignore: prefer_const_literals_to_create_immutables
                   children: [
                     Text(
                       'Not a member?',
@@ -246,7 +200,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: widget.showRegisterPage,
+                      onTap: () => context.push(Routes.register),
                       child: Text(
                         ' Register now',
                         style: TextStyle(

@@ -1,20 +1,19 @@
 // ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors, sized_box_for_whitespace
 
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/firebase/database_refs.dart';
+import '../../../core/providers.dart';
 import '../data/water_repository.dart';
 
-class WaterTracker extends StatefulWidget {
+class WaterTracker extends ConsumerStatefulWidget {
   @override
-  _WaterTrackerState createState() => _WaterTrackerState();
+  ConsumerState<WaterTracker> createState() => _WaterTrackerState();
 }
 
-class _WaterTrackerState extends State<WaterTracker> {
+class _WaterTrackerState extends ConsumerState<WaterTracker> {
   int _waterIntake = 0;
-  final WaterRepository _waterRepo =
-      WaterRepository(DatabaseRefs(FirebaseDatabase.instance));
+  WaterRepository get _waterRepo => ref.read(waterRepositoryProvider);
 
   void _incrementWaterIntake() {
     setState(() {

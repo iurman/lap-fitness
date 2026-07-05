@@ -1,28 +1,23 @@
-// ignore_for_file: prefer_const_constructors, use_build_context_synchronously, avoid_print
-// ignore_for_file: use_key_in_widget_constructors
+// ignore_for_file: prefer_const_constructors
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../data/auth_repository.dart';
-import '../../shell/presentation/loading_page.dart';
+import '../../../core/providers.dart';
 
-class RegisterPage extends StatefulWidget {
-  final VoidCallback showLoginPage;
-  const RegisterPage({
-    super.key,
-    required this.showLoginPage,
-  });
+class RegisterPage extends ConsumerStatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
-  // text controllers
+class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _authRepo = AuthRepository(FirebaseAuth.instance);
   bool isLoading = false;
   bool _isObscure = true;
 
@@ -41,78 +36,48 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> signUp() async {
-    if (passwordConfirmed()) {
-      setState(() {
-        isLoading = true;
-      });
-      try {
-        UserCredential userCredential = await _authRepo.register(
-            _emailController.text, _passwordController.text);
-        if (userCredential.user != null) {
-          // Navigate to the user info page after successful registration
-          await Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => LoadingPage(
-                welcomeMessage: 'Sucessfully Registered! Welcome!',
-              ),
-            ),
+    if (!passwordConfirmed()) {
+      _showMessage('The passwords do not match.');
+      return;
+    }
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      // On success the auth state change drives the router redirect to the
+      // loading gate, which routes first-time users into onboarding.
+      await ref.read(authRepositoryProvider).register(
+            _emailController.text,
+            _passwordController.text,
           );
-        }
-      } on FirebaseAuthException catch (e) {
-        setState(() {
-          isLoading = false;
-        });
-        if (e.code == 'weak-password') {
-          print('The password provided is too weak.');
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                content: Text('The password provided is too weak.'),
-              );
-            },
-          );
-        } else if (e.code == 'email-already-in-use') {
-          print('The account already exists for that email.');
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                content: Text('The account already exists for that email.'),
-              );
-            },
-          );
-        }
-      } catch (e) {
-        print(e);
-      } finally {
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        _showMessage('The password provided is too weak.');
+      } else if (e.code == 'email-already-in-use') {
+        _showMessage('The account already exists for that email.');
+      } else {
+        _showMessage(e.message ?? 'Registration failed.');
+      }
+    } finally {
+      if (mounted) {
         setState(() {
           isLoading = false;
         });
       }
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: Text('The passwords do not match.'),
-          );
-        },
-      );
     }
   }
 
+  void _showMessage(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(content: Text(message)),
+    );
+  }
+
   bool passwordConfirmed() {
-    if (_passwordController.text.trim() ==
-        _confirmPasswordController.text.trim()) {
-      return true;
-    } else {
-      return false;
-    }
+    return _passwordController.text.trim() ==
+        _confirmPasswordController.text.trim();
   }
 
   @override
@@ -121,14 +86,11 @@ class _RegisterPageState extends State<RegisterPage> {
       backgroundColor: Colors.grey[300],
       body: SafeArea(
         child: Center(
-          // ignore: prefer_const_literals_to_create_immutables
           child: SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              // ignore: prefer_const_literals_to_create_immutables, duplicate_ignore
               children: [
                 Image.asset('assets/images/lap2.png', width: 400, height: 400),
-                // Hello Again!
                 SizedBox(height: 20),
                 Text(
                   'Register below',
@@ -253,10 +215,9 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 SizedBox(height: 25),
 
-                // not a member? register now
+                // already a member? login now
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  // ignore: prefer_const_literals_to_create_immutables
                   children: [
                     Text(
                       'I am a member!',
@@ -265,7 +226,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: widget.showLoginPage,
+                      onTap: () => context.pop(),
                       child: Text(
                         ' Login now',
                         style: TextStyle(

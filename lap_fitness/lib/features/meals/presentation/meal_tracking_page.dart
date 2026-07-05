@@ -2,29 +2,27 @@
 
 import 'dart:async';
 
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/firebase/database_refs.dart';
+import '../../../core/providers.dart';
 import '../../auth/data/auth_repository.dart';
 import '../data/meals_repository.dart';
 import '../domain/meal.dart';
 
-class MealTrackingPage extends StatefulWidget {
+class MealTrackingPage extends ConsumerStatefulWidget {
   @override
-  _MealTrackingPageState createState() => _MealTrackingPageState();
+  ConsumerState<MealTrackingPage> createState() => _MealTrackingPageState();
 }
 
-class _MealTrackingPageState extends State<MealTrackingPage> {
+class _MealTrackingPageState extends ConsumerState<MealTrackingPage> {
   final mealNameController = TextEditingController();
   final proteinController = TextEditingController();
   final fatController = TextEditingController();
   final carbsController = TextEditingController();
 
-  final AuthRepository _authRepo = AuthRepository(FirebaseAuth.instance);
-  final MealsRepository _mealsRepo =
-      MealsRepository(DatabaseRefs(FirebaseDatabase.instance));
+  AuthRepository get _authRepo => ref.read(authRepositoryProvider);
+  MealsRepository get _mealsRepo => ref.read(mealsRepositoryProvider);
   late final String _uid;
 
   List<Meal> mealJournal = [];

@@ -1,24 +1,24 @@
 // ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors
 
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/firebase/database_refs.dart';
+import '../../../core/providers.dart';
 import '../../profile/data/profile_repository.dart';
 
-class PrivacySettingsPage extends StatefulWidget {
+class PrivacySettingsPage extends ConsumerStatefulWidget {
   final String userId;
 
-  const PrivacySettingsPage({required this.userId});
+  const PrivacySettingsPage({super.key, required this.userId});
 
   @override
-  _PrivacySettingsPageState createState() => _PrivacySettingsPageState();
+  ConsumerState<PrivacySettingsPage> createState() =>
+      _PrivacySettingsPageState();
 }
 
-class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
+class _PrivacySettingsPageState extends ConsumerState<PrivacySettingsPage> {
   bool _privateMode = false;
-  final ProfileRepository _profileRepo =
-      ProfileRepository(DatabaseRefs(FirebaseDatabase.instance));
+  ProfileRepository get _profileRepo => ref.read(profileRepositoryProvider);
 
   @override
   void initState() {
