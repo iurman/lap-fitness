@@ -1,7 +1,10 @@
 // ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors
 
-import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
+
+import '../../../core/firebase/database_refs.dart';
+import '../../profile/data/profile_repository.dart';
 
 class PrivacySettingsPage extends StatefulWidget {
   final String userId;
@@ -14,8 +17,8 @@ class PrivacySettingsPage extends StatefulWidget {
 
 class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
   bool _privateMode = false;
-  final DatabaseReference _usersDatabase =
-      FirebaseDatabase.instance.ref().child('users');
+  final ProfileRepository _profileRepo =
+      ProfileRepository(DatabaseRefs(FirebaseDatabase.instance));
 
   @override
   void initState() {
@@ -24,22 +27,15 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
   }
 
   void _fetchPrivateMode() async {
-    await _usersDatabase
-        .child(widget.userId)
-        .once()
-        .then((DatabaseEvent event) {
-      Map<dynamic, dynamic>? userData =
-          event.snapshot.value as Map<dynamic, dynamic>?;
-      setState(() {
-        _privateMode = userData?['privateMode'] ?? false;
-      });
+    final profile = await _profileRepo.getProfile(widget.userId);
+    if (!mounted) return;
+    setState(() {
+      _privateMode = profile.privateMode;
     });
   }
 
   void _savePrivateMode() async {
-    await _usersDatabase
-        .child(widget.userId)
-        .update({'privateMode': _privateMode});
+    await _profileRepo.setPrivateMode(widget.userId, _privateMode);
   }
 
   @override

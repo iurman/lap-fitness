@@ -2,7 +2,9 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:lap_fitness/auth_page.dart';
+
+import '../../auth/data/auth_repository.dart';
+import '../../auth/presentation/auth_page.dart';
 
 class AccountSettingsPage extends StatefulWidget {
   @override
@@ -15,6 +17,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
   final _passwordController = TextEditingController();
   final _emailFormKey = GlobalKey<FormState>();
   final _passwordFormKey = GlobalKey<FormState>();
+  final _authRepo = AuthRepository(FirebaseAuth.instance);
   String? _emailError;
   String? _passwordError;
 
@@ -34,8 +37,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
     try {
       // Send a verification link to the new address; the change is applied
       // once the user confirms. `updateEmail` was removed in firebase_auth 6.x.
-      await FirebaseAuth.instance.currentUser!
-          .verifyBeforeUpdateEmail(_emailController.text);
+      await _authRepo.verifyBeforeUpdateEmail(_emailController.text);
 
       // Show a success message
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -59,8 +61,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
 
     try {
       // Update the password
-      await FirebaseAuth.instance.currentUser!
-          .updatePassword(_passwordController.text);
+      await _authRepo.updatePassword(_passwordController.text);
 
       // Show a success message
       ScaffoldMessenger.of(context)
@@ -100,8 +101,8 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
     );
     // If the user confirms, delete the account and sign out
     if (confirmed) {
-      await FirebaseAuth.instance.currentUser!.delete();
-      await FirebaseAuth.instance.signOut();
+      await _authRepo.deleteAccount();
+      await _authRepo.signOut();
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => AuthPage()),

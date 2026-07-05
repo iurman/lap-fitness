@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'note_page.dart';
+import 'notes_page.dart';
 
 class CalendarPage extends StatefulWidget {
   @override

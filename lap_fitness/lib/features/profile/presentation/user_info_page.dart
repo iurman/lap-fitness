@@ -1,10 +1,15 @@
 // ignore_for_file: library_private_types_in_public_api, unused_field, prefer_const_constructors, sort_child_properties_last
 
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:lap_fitness/home_page.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import '../../../core/firebase/database_refs.dart';
+import '../../auth/data/auth_repository.dart';
+import '../../shell/presentation/home_shell.dart';
+import '../data/profile_repository.dart';
+import '../domain/user_profile.dart';
 
 class UserInfoPage extends StatefulWidget {
   final String? calories;
@@ -33,31 +38,26 @@ class _UserInfoPageState extends State<UserInfoPage> {
       text: widget
           .calories); // Assign the passed calorie amount to a new controller
 
-  late DatabaseReference _userRef;
-  late User _currentUser;
+  final _authRepo = AuthRepository(FirebaseAuth.instance);
+  final _profileRepo =
+      ProfileRepository(DatabaseRefs(FirebaseDatabase.instance));
+  late final String _uid;
 
   @override
   void initState() {
     super.initState();
-    _currentUser = FirebaseAuth.instance.currentUser!;
-    _userRef = FirebaseDatabase.instance
-        .ref()
-        .child('users')
-        .child(_currentUser.uid);
+    _uid = _authRepo.currentUid!;
 
-    _userRef.onValue.listen((event) {
-      final user = event.snapshot.value as Map<dynamic, dynamic>;
+    _profileRepo.watchProfile(_uid).listen((profile) {
+      if (!mounted) return;
       setState(() {
-        _ageController.text = user['age'] ?? '';
-        _selectedGender =
-            user['gender'] ?? ''; // Update _selectedGender instead
-        _weightController.text = user['weight'] ?? '';
-        _heightFeetController.text = user['heightFeet'] ?? '';
-        _heightInchesController.text = user['heightInches'] ?? '';
-        _calorieController.text = user['calories'] ?? '';
+        _ageController.text = profile.age;
+        _selectedGender = profile.gender.isEmpty ? null : profile.gender;
+        _weightController.text = profile.weight;
+        _heightFeetController.text = profile.heightFeet;
+        _heightInchesController.text = profile.heightInches;
+        _calorieController.text = profile.calories;
       });
-    }, onError: (error) {
-      // handle error
     });
   }
 
@@ -73,27 +73,22 @@ class _UserInfoPageState extends State<UserInfoPage> {
   }
 
   void _saveUserInfo() {
-    // Get the form values
-    final age = _ageController.text;
-    final gender = _selectedGender;
-    final weight = _weightController.text;
-    final heightFeet = _heightFeetController.text;
-    final heightInches = _heightInchesController.text;
-    final calories = _calorieController.text;
+    final profile = UserProfile(
+      age: _ageController.text,
+      gender: _selectedGender ?? '',
+      weight: _weightController.text,
+      heightFeet: _heightFeetController.text,
+      heightInches: _heightInchesController.text,
+      calories: _calorieController.text,
+    );
 
-    // Save the user info to the database
-    _userRef.update({
-      'age': age,
-      'gender': gender,
-      'weight': weight,
-      'heightFeet': heightFeet,
-      'heightInches': heightInches,
-      'calories': calories,
-    }).then((_) {
+    _profileRepo.saveProfile(_uid, profile).then((_) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('User info saved successfully.'),
       ));
     }).catchError((error) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Failed to save user info: $error'),
       ));

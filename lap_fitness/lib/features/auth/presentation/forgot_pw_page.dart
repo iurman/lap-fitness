@@ -1,8 +1,11 @@
 // ignore_for_file: prefer_const_constructors, use_build_context_synchronously, avoid_print, sort_child_properties_last
 
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
+
+import '../data/auth_repository.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -13,6 +16,7 @@ class ForgotPasswordPage extends StatefulWidget {
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final _emailController = TextEditingController();
+  final _authRepo = AuthRepository(FirebaseAuth.instance);
 
   @override
   void dispose() {
@@ -22,8 +26,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   Future passwordReset() async {
     try {
-      await FirebaseAuth.instance
-          .sendPasswordResetEmail(email: _emailController.text.trim());
+      await _authRepo.sendPasswordReset(_emailController.text);
       showDialog(
         context: context,
         builder: (context) {

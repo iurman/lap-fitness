@@ -1,9 +1,15 @@
 // ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors
 
 import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
+import '../../../core/firebase/database_refs.dart';
+import '../../auth/data/auth_repository.dart';
+import '../data/meals_repository.dart';
+import '../domain/meal.dart';
 
 class MealTrackingPage extends StatefulWidget {
   @override
@@ -16,57 +22,34 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
   final fatController = TextEditingController();
   final carbsController = TextEditingController();
 
-  late DatabaseReference mealsReference;
+  final AuthRepository _authRepo = AuthRepository(FirebaseAuth.instance);
+  final MealsRepository _mealsRepo =
+      MealsRepository(DatabaseRefs(FirebaseDatabase.instance));
+  late final String _uid;
 
-  List<Map<String, dynamic>> mealJournal = [];
+  List<Meal> mealJournal = [];
 
-  late StreamSubscription<DatabaseEvent> _streamSubscription;
+  StreamSubscription<List<Meal>>? _streamSubscription;
 
   @override
   void initState() {
     super.initState();
-
-    // Get the current user ID
-    final currentUserID = FirebaseAuth.instance.currentUser!.uid;
-
-    // Update the meals reference to include the user ID
-    mealsReference = FirebaseDatabase.instance
-        .ref()
-        .child('meals')
-        .child(currentUserID);
-
-    // Listen to changes in the meals node in Firebase Realtime Database
-    _streamSubscription = mealsReference.onValue.listen((event) {
-      _onMealsUpdate(event.snapshot);
+    _uid = _authRepo.currentUid!;
+    _streamSubscription = _mealsRepo.watchMeals(_uid).listen((meals) {
+      setState(() {
+        mealJournal = meals;
+      });
     });
   }
 
   @override
   void dispose() {
-    _streamSubscription.cancel();
+    _streamSubscription?.cancel();
     super.dispose();
   }
 
-  void _onMealsUpdate(DataSnapshot dataSnapshot) {
-    final List<Map<String, dynamic>> meals = [];
-    if (dataSnapshot.value != null) {
-      (dataSnapshot.value as Map<dynamic, dynamic>).forEach((key, data) {
-        meals.add({
-          'key': key,
-          'name': data['name'],
-          'protein': data['protein'],
-          'fat': data['fat'],
-          'carbs': data['carbs'],
-        });
-      });
-      setState(() {
-        mealJournal = meals;
-      });
-    }
-  }
-
   void deleteMeal(String mealKey) async {
-    await mealsReference.child(mealKey).remove();
+    await _mealsRepo.deleteMeal(_uid, mealKey);
   }
 
   void submitMealForm() async {
@@ -82,13 +65,14 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
     }
 
     // Add the meal to the journal
-    final meal = {
-      'name': mealName,
-      'protein': protein,
-      'fat': fat,
-      'carbs': carbs,
-    };
-    await mealsReference.push().set(meal);
+    final meal = Meal(
+      key: '',
+      name: mealName,
+      protein: protein,
+      fat: fat,
+      carbs: carbs,
+    );
+    await _mealsRepo.addMeal(_uid, meal);
 
     // Clear the form values
     mealNameController.clear();
@@ -105,19 +89,11 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
     double totalCarbs = 0;
 
     // calculate the total calories, protein, fat, and carbs for the day
-    for (var meal in mealJournal) {
-      final protein = meal['protein'];
-      final fat = meal['fat'];
-      final carbs = meal['carbs'];
-
-      // calculate the calories from the macronutrients using the following formula:
-      // calories = 4 * protein + 9 * fat + 4 * carbs
-      final calories = 4 * protein + 9 * fat + 4 * carbs;
-
-      totalCalories += calories;
-      totalProtein += protein;
-      totalFat += fat;
-      totalCarbs += carbs;
+    for (final meal in mealJournal) {
+      totalCalories += meal.calories;
+      totalProtein += meal.protein;
+      totalFat += meal.fat;
+      totalCarbs += meal.carbs;
     }
 
     return Scaffold(
@@ -167,7 +143,7 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
                 Center(
                   child: ElevatedButton(
                     style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(
+                      backgroundColor: WidgetStateProperty.all<Color>(
                         Color.fromARGB(255, 138, 104, 35),
                       ),
                     ),
@@ -195,24 +171,23 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
               itemBuilder: (BuildContext context, int index) {
                 final meal = mealJournal[index];
                 return Dismissible(
-                  key: Key(meal['key']),
+                  key: Key(meal.key),
                   onDismissed: (direction) {
-                    deleteMeal(meal['key']);
+                    deleteMeal(meal.key);
                     setState(() {
                       mealJournal.removeAt(index);
                     });
                   },
                   child: Card(
                     child: ListTile(
-                      title: Text(meal['name']),
+                      title: Text(meal.name),
                       subtitle: Text(
-                        '${meal['protein']}g P | ${meal['fat']}g F | ${meal['carbs']}g C',
+                        '${meal.protein}g P | ${meal.fat}g F | ${meal.carbs}g C',
                       ),
                       trailing: IconButton(
                         icon: Icon(Icons.delete),
                         onPressed: () {
-                          // Delete the meal from Firebase Realtime Database
-                          mealsReference.child(meal['key']).remove();
+                          deleteMeal(meal.key);
                         },
                       ),
                     ),

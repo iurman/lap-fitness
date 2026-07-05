@@ -1,14 +1,10 @@
 // ignore_for_file: prefer_const_constructors, use_build_context_synchronously, avoid_print
 // ignore_for_file: use_key_in_widget_constructors
-// ignore_for_file: unused_import
-import 'dart:async';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:lap_fitness/home_page.dart';
-import 'package:lap_fitness/main_page.dart';
-import 'package:lap_fitness/loading_page.dart';
-import 'package:lap_fitness/user_info.dart';
+
+import '../data/auth_repository.dart';
+import '../../shell/presentation/loading_page.dart';
 
 class RegisterPage extends StatefulWidget {
   final VoidCallback showLoginPage;
@@ -26,6 +22,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _authRepo = AuthRepository(FirebaseAuth.instance);
   bool isLoading = false;
   bool _isObscure = true;
 
@@ -49,10 +46,8 @@ class _RegisterPageState extends State<RegisterPage> {
         isLoading = true;
       });
       try {
-        UserCredential userCredential = await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(
-                email: _emailController.text.trim(),
-                password: _passwordController.text.trim());
+        UserCredential userCredential = await _authRepo.register(
+            _emailController.text, _passwordController.text);
         if (userCredential.user != null) {
           // Navigate to the user info page after successful registration
           await Navigator.pushReplacement(

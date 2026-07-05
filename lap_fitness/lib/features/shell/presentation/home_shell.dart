@@ -2,14 +2,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:lap_fitness/user_info.dart';
-import 'feed_page.dart';
-import 'note_page.dart';
-import 'meal_tracking_page.dart';
-import 'calendar_page.dart';
-import 'settings_page.dart';
-import 'package:lap_fitness/workout_tracker.dart';
-import 'package:lap_fitness/water_tracker.dart';
+
+import '../../feed/presentation/feed_page.dart';
+import '../../meals/presentation/meal_tracking_page.dart';
+import '../../notes/presentation/calendar_page.dart';
+import '../../notes/presentation/notes_page.dart';
+import '../../profile/presentation/user_info_page.dart';
+import '../../settings/presentation/settings_page.dart';
+import '../../water/presentation/water_tracker_page.dart';
+import '../../workout/presentation/workout_tracker_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

@@ -1,8 +1,15 @@
 // ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, library_private_types_in_public_api
-import 'package:flutter/material.dart';
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
+import '../../../core/firebase/database_refs.dart';
+import '../../auth/data/auth_repository.dart';
+import '../data/notes_repository.dart';
+import '../domain/note.dart';
 
 class NotesPage extends StatefulWidget {
   final DateTime? selectedDate;
@@ -17,111 +24,67 @@ class NotesPage extends StatefulWidget {
 }
 
 class _NotesPageState extends State<NotesPage> {
-  final databaseReference = FirebaseDatabase.instance.ref();
-  User? user = FirebaseAuth.instance.currentUser;
-  List notesList = [];
-
-  Null get database => null;
+  final AuthRepository _authRepo = AuthRepository(FirebaseAuth.instance);
+  final NotesRepository _notesRepo =
+      NotesRepository(DatabaseRefs(FirebaseDatabase.instance));
+  List<Note> notesList = [];
+  StreamSubscription<List<Note>>? _notesSub;
+  bool _listenerSet = false;
+  String? _uid;
 
   // Function to add a new note to Firebase
   Future<void> addNewNote() async {
-    await databaseReference
-        .child("users")
-        .child(user!.uid)
-        .child("notes")
-        .push()
-        .set({
-      "name": "",
-      "content": "",
-      "created_at": DateTime.now().toIso8601String(),
-      "selected_date": widget.selectedDate?.toIso8601String() ?? ''
-    });
+    if (_uid == null) return;
+    await _notesRepo.addNote(uid: _uid!, day: widget.selectedDate);
     if (mounted) {
       setState(() {});
     }
   }
 
-  // Function to update the name of a note in Firebase
   Future<void> updateNoteName(String key, String name) async {
-    await databaseReference
-        .child("users")
-        .child(user!.uid)
-        .child("notes")
-        .child(key)
-        .update({"name": name});
-    if (mounted) {
-      setState(() {});
-    }
+    if (_uid == null) return;
+    await _notesRepo.updateName(_uid!, key, name);
   }
 
-  // Function to update the content of a note in Firebase
   Future<void> updateNoteContent(String key, String content) async {
-    await databaseReference
-        .child("users")
-        .child(user!.uid)
-        .child("notes")
-        .child(key)
-        .update({"content": content});
-    setState(() {});
+    if (_uid == null) return;
+    await _notesRepo.updateContent(_uid!, key, content);
   }
 
-  // Function to delete a note from Firebase
   Future<void> deleteNote(String key) async {
-    await databaseReference
-        .child("users")
-        .child(user!.uid)
-        .child("notes")
-        .child(key)
-        .remove();
-    if (mounted) {
-      setState(() {});
-    }
+    if (_uid == null) return;
+    await _notesRepo.deleteNote(_uid!, key);
   }
-
-  bool _listenerSet = false;
 
   @override
   void initState() {
     super.initState();
 
-    FirebaseAuth.instance.authStateChanges().listen((User? firebaseUser) {
+    _authRepo.authStateChanges().listen((User? firebaseUser) {
       if (firebaseUser != null && !_listenerSet) {
         _listenerSet = true;
-        user = firebaseUser;
+        _uid = firebaseUser.uid;
 
-        Query query =
-            databaseReference.child("users").child(user!.uid).child("notes");
+        final DateTime? day =
+            (!widget.showAllNotes && widget.selectedDate != null)
+                ? widget.selectedDate
+                : null;
 
-        if (!widget.showAllNotes && widget.selectedDate != null) {
-          String selectedDateStr = widget.selectedDate!.toIso8601String();
-          query = query
-              .orderByChild("selected_date")
-              .startAt(selectedDateStr)
-              .endAt(widget.selectedDate!
-                  .add(Duration(days: 1))
-                  .toIso8601String());
-        }
-
-        query.onValue.listen((event) {
-          notesList.clear();
-          if (event.snapshot.value != null) {
-            Map<dynamic, dynamic> notesMap =
-                event.snapshot.value as Map<dynamic, dynamic>;
-            notesMap.forEach((key, value) {
-              notesList.add({
-                "key": key,
-                "name": value["name"],
-                "content": value["content"],
-                "created_at": value["created_at"],
-              });
-            });
-          }
+        _notesSub = _notesRepo.watchNotes(_uid!, day: day).listen((notes) {
           if (mounted) {
-            setState(() {});
+            setState(() {
+              notesList = notes;
+            });
           }
         });
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _notesSub?.cancel();
+    super.dispose();
   }
 
   @override
@@ -147,8 +110,8 @@ class _NotesPageState extends State<NotesPage> {
         ),
         itemCount: notesList.length,
         itemBuilder: (BuildContext context, int index) {
-          final titleController =
-              TextEditingController(text: notesList[index]["name"]);
+          final Note note = notesList[index];
+          final titleController = TextEditingController(text: note.name);
           titleController.selection = TextSelection.fromPosition(
               TextPosition(offset: titleController.text.length));
           return Container(
@@ -159,7 +122,7 @@ class _NotesPageState extends State<NotesPage> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.3),
+                  color: Colors.grey.withValues(alpha: 0.3),
                   blurRadius: 6,
                   offset: Offset(0, 3),
                 ),
@@ -181,15 +144,14 @@ class _NotesPageState extends State<NotesPage> {
                     fontWeight: FontWeight.bold,
                     color: Color.fromARGB(255, 138, 104, 35),
                   ),
-                  onChanged: (value) =>
-                      updateNoteName(notesList[index]["key"], value),
+                  onChanged: (value) => updateNoteName(note.key, value),
                 ),
                 SizedBox(height: 12),
                 // Creation date of the note
                 Text(
-                  DateFormat.yMd()
-                      .add_jm()
-                      .format(DateTime.parse(notesList[index]["created_at"])),
+                  note.createdAt != null
+                      ? DateFormat.yMd().add_jm().format(note.createdAt!)
+                      : '',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey,
@@ -204,9 +166,8 @@ class _NotesPageState extends State<NotesPage> {
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.zero,
                     ),
-                    initialValue: notesList[index]["content"],
-                    onChanged: (value) =>
-                        updateNoteContent(notesList[index]["key"], value),
+                    initialValue: note.content,
+                    onChanged: (value) => updateNoteContent(note.key, value),
                     maxLines: null,
                     style: TextStyle(fontSize: 16),
                   ),
@@ -219,9 +180,8 @@ class _NotesPageState extends State<NotesPage> {
                       icon: Icon(Icons.delete),
                       onPressed: () {
                         // Delete note from database
-                        deleteNote(notesList[index]["key"]);
+                        deleteNote(note.key);
                         if (mounted) {
-                          // Remove note from notesList
                           setState(() {
                             notesList.removeAt(index);
                           });

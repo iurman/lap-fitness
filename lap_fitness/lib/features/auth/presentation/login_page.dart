@@ -1,12 +1,14 @@
 // ignore_for_file: prefer_const_constructors, use_build_context_synchronously, avoid_print
 
-// ignore: unused_import
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:lap_fitness/forgot_pw_page.dart';
-import 'dart:async';
-import 'package:lap_fitness/loading_page.dart';
-import 'package:lap_fitness/home_page.dart';
+
+import '../data/auth_repository.dart';
+import '../../shell/presentation/home_shell.dart';
+import '../../shell/presentation/loading_page.dart';
+import 'forgot_pw_page.dart';
 
 class LoginPage extends StatefulWidget {
   final VoidCallback showRegisterPage;
@@ -20,6 +22,7 @@ class _LoginPageState extends State<LoginPage> {
   // text controllers
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _authRepo = AuthRepository(FirebaseAuth.instance);
   bool _passwordVisible = false;
   bool isLoading = false;
 
@@ -29,10 +32,9 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+      UserCredential userCredential = await _authRepo.signIn(
+        _emailController.text,
+        _passwordController.text,
       );
 
       if (userCredential.user != null) {
