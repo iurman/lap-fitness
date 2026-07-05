@@ -5,7 +5,8 @@
 > was changed. Paths are relative to `lap_fitness/` unless noted.
 >
 > **Method:** Static code tracing of the runtime path
-> (`main.dart` → `app/app.dart` → `app/router.dart` → screens → repositories → models).
+> (`main.dart` → `app/app.dart` → `app/router.dart` → screens → repositories → models),
+> cross-checked by an independent adversarial correctness pass and a test-suite audit.
 > Items that genuinely need a live Firebase project or a running device to confirm are
 > collected in the last section. Observations and opinions are kept separate; opinions are
 > tagged **[opinion]**.
@@ -79,6 +80,11 @@ exit / dead code).
   message and **also** pops after 2s (`:56-58`).
 - **[opinion]** Surfacing the raw `e.message` (`:52`) and auto-popping even on error is rough
   UX, but it functions.
+- **Bug — the 2s auto-pop targets an ambiguous route.** After showing the dialog, a `Timer(2s)`
+  calls `context.pop()` (`:43-45`, `:56-58`). If the user dismisses the dialog first
+  (barrier-dismiss), the timer 2s later pops the **ForgotPassword page itself**, bouncing them
+  back to login unexpectedly — the pop target depends on what's on top of the navigator at fire
+  time.
 
 ### 2.4 Profile / Onboarding — **Partial**
 - `user_info_page.dart` + `profile_repository.dart` + `user_profile.dart`.
@@ -96,6 +102,10 @@ exit / dead code).
   decide routing (`loading_page.dart:32-34`). Net effect: a user can finish onboarding with a
   half-filled profile and land on home this session, but on the **next** login the loading gate
   bounces them back to `/onboarding`.
+- **Bug — live stream clobbers in-progress edits.** The edit form subscribes to `watchProfile`
+  (a live `onValue` stream) and overwrites **all** controllers inside `setState` on every emit
+  (`user_info_page.dart:46-59`). Any remote write to the profile (e.g. toggling `privateMode`
+  from the privacy screen) re-emits and wipes out whatever the user was mid-typing.
 - Data model persists **everything as strings** (`user_profile.dart:20-26`) for backward
   compatibility; `privateMode` is written separately so onboarding saves don't clobber it
   (`profile_repository.dart:29-31`, `user_profile.dart:48-57`).
@@ -111,6 +121,10 @@ exit / dead code).
   Feed/Notes/Meals/Calendar tabs.
 - **[opinion]** Hardcoded `Colors.white` background + brand app bar (`:49-52`) ignore the dark
   theme wired up in `app_theme.dart`; the shell will look wrong in dark mode.
+- **Bug — a frozen `DateTime.now()` in the section list.** `_sections` is `static final`, so
+  `NotesPage(selectedDate: DateTime.now())` (`home_shell.dart:29`) captures the timestamp **once**
+  at first class access. Notes created from the Notes tab get `selected_date` = app-launch time,
+  which drifts wrong across midnight or long-running sessions.
 
 ### 2.6 Social Feed — **Partial**
 - `feed_page.dart` + `feed_repository.dart` + `post.dart`. One **global** node `/feedData`
@@ -126,6 +140,15 @@ exit / dead code).
   **no like or comment UI anywhere**, and `addPost` never sets them (`feed_repository.dart:40-49`).
 - **Missing states:** no empty state (blank list when there are no posts), no loading indicator,
   no error state (errors are only logged, `feed_page.dart:67-68`, `76-77`).
+- **Bug — one malformed node kills the whole feed.** `onPostAdded` casts
+  `event.snapshot.value as Map` unconditionally (`feed_repository.dart:18-20`); a single null /
+  non-map child throws, the error reaches the `onError` handler which only logs
+  (`feed_page.dart:67`), and the subscription is then **cancelled** — the feed stops receiving
+  any further posts until the page is rebuilt.
+- **Bug — deleting a legacy post can wipe several from the list.** The removal stream matches on
+  `postId` (`feed_page.dart:74`), and legacy posts without a `postId` default to `''`
+  (`post.dart:31-42`). Removing one empty-`postId` post runs `removeWhere` and drops **all**
+  empty-`postId` posts from the local list at once.
 - **No timestamps:** `Post` has no `createdAt` (the modernization plan called for one); posts
   can't be sorted or dated in the UI.
 
@@ -138,7 +161,13 @@ exit / dead code).
   **recreated on every build** inside `itemBuilder` (`notes_page.dart:111-113`). Each keystroke
   → `updateNoteName` writes → `watchNotes` stream re-emits → `setState` rebuild → new controller
   seeded from the DB value with the caret forced to the end. Typing mid-string jumps the cursor;
-  it also leaks a controller per rebuild.
+  it also **leaks a `TextEditingController` per rebuild** (`notes_page.dart:111`).
+- **Bug — content can bind to the wrong note after a delete.** The content field uses
+  `initialValue: note.content` with **no controller and no `Key` on the grid items**
+  (`notes_page.dart:103-193`, `:166`). `initialValue` only applies on first build, and without
+  keys Flutter preserves `EditableText` state **by position, not identity**. Type into note B's
+  content, delete note A (`notesList.removeAt(index)`, `:183`) → indices shift and B's in-progress
+  text can render under a different note.
 - **[opinion]** Writing to Firebase on every keystroke (no debounce) is chatty and racy against
   the re-emitting stream.
 - Date filtering works: when opened for a specific day (`showAllNotes:false`), it queries by
@@ -177,6 +206,11 @@ exit / dead code).
   keeps the count in sync (`:28-30`).
 - **Gap — single cumulative counter, never resets.** There is no per-day scoping; the number
   grows forever and never rolls over at midnight. "Cups today" is really "cups ever."
+- **Bug — rapid taps lose increments.** `_incrementWaterIntake` does a local `_waterIntake++`
+  then writes (`water_tracker_page.dart:39-44`), while the live `watchIntake` stream separately
+  overwrites `_waterIntake` with the server value on every emit (`:28-30`). Tapping `+` several
+  times quickly lets a re-emitted **stale** server value overwrite the optimistic local count
+  between taps, and the next `++` starts from the stale field — net under-counting.
 
 ### 2.11 Meal / macro tracker — **Partial**
 - `meal_tracking_page.dart` + `meals_repository.dart` + `meal.dart`. Meals live at
@@ -205,13 +239,36 @@ exit / dead code).
 - **Caveat (needs live auth):** `updatePassword` / `verifyBeforeUpdateEmail` require a *recent*
   login; on an older session Firebase throws `requires-recent-login`. That path is caught and shown
   via `errorText` for password (`:80-85`) — no re-auth flow exists to recover.
-- Delete account works and signs out (`:112-116`); it too can hit `requires-recent-login`, which is
-  **not** caught here (`:114`) and would surface as an unhandled exception.
+- **Bug (P1) — delete-account has no error handling and orphans data.** `_deleteAccount`
+  (`:88-117`) calls `deleteAccount()` → `currentUser!.delete()` with **no try/catch** (`:114`).
+  `delete()` throws `requires-recent-login` for any user who didn't just authenticate — the common
+  case — so the delete silently fails with an unhandled async error and **zero user feedback**
+  (unlike password/email, which catch it). Even on success, the user's RTDB data
+  (`/users/{uid}`, `/meals/{uid}`, their feed posts) is **never removed** — orphaned indefinitely.
+- **Bug — `setState` after `await` with no `mounted` guard.** Both catch blocks set
+  `_emailError` / `_passwordError` via `setState` without checking `mounted` (`:54-57`, `:81-85`);
+  navigating away mid-request throws on a disposed `State`.
 
 ### 2.14 Privacy settings — **Working**
 - `privacy_settings_page.dart:30-40` — loads `privateMode` and writes it on toggle. Functions,
   but there's **no saved-confirmation feedback** and no explanation of what "private mode" does
   (it only affects the feed display name).
+
+### 2.15 Test coverage — **partial, and blind to the real bugs**
+- The suite (`test/`) is strong on **model round-trips** (`Post`, `Meal`, `Note`, `UserProfile`)
+  and on **router redirect logic** (`test/app/router_test.dart` drives the real redirect off a
+  faked auth stream), plus **screen-render smoke tests**.
+- **Near-zero coverage of repository / stream / query logic.** Every repository is replaced by a
+  fake in `test/support/fakes.dart`; the real RTDB snapshot-parsing, day-filter query, and
+  `onChildAdded`/`onValue` mapping code is **never executed**. `RegisterPage`,
+  `ForgotPasswordPage`, and the `LoadingPage` gate have no direct tests.
+- **The fakes structurally cannot catch the reactive bugs.** They emit a single `Stream.value(...)`
+  instead of a live multi-emission stream, **no-op all writes** (so a write never round-trips back
+  through the read stream), and **drop query semantics** (the notes `day` filter is ignored
+  entirely). As a result, **none of the bugs above** — notes cursor-reset, meals summing all days,
+  the account-settings null crash, calendar misalignment, water never resetting — would be caught
+  by the current tests. A green CI badge here means "models serialize and screens render," not
+  "features behave."
 
 ---
 
@@ -322,10 +379,14 @@ Derived entirely from `core/firebase/database_refs.dart` and the repositories.
 These are **assumptions** pending a live backend or device — flagged so we don't treat them as
 confirmed:
 
-1. **RTDB security rules.** The whole per-user vs global security model depends on server-side
-   rules that are **not in this repo**. Whether users can actually read/write other users'
-   `/users/{uid}` or delete others' `/feedData` posts (bypassing the client-side author gate at
-   `feed_page.dart:98`) cannot be confirmed from the app code.
+1. **RTDB security rules — not in the repo at all.** There is **no `firebase.json`, `.firebaserc`,
+   or `database.rules.json`** anywhere in the tree (verified by find over the whole repo). The live
+   rules exist only in the Firebase console — un-versioned, un-reviewable, and impossible to test
+   offline. So the entire per-user vs global security model (whether users can read/write other
+   users' `/users/{uid}`, or delete others' `/feedData` posts bypassing the client-side author gate
+   at `feed_page.dart:98`) is **unverifiable from this repo**. *(Roadmapped: bring rules in-repo
+   with a local emulator + `@firebase/rules-unit-testing` tests, encoding the current per-user-private
+   / shared-feed / delete-own-only model.)*
 2. **Existing production data shapes.** The models assume legacy string-typed fields
    (`user_profile.dart:20-26`). Whether real stored data matches (or contains other keys) needs a
    live DB dump.
@@ -349,23 +410,47 @@ confirmed:
 
 ---
 
-## 6. One-line status summary
+## 6. Repo / infra observations
+
+- **Dead assets (fixed on this branch).** Four images were declared in `pubspec.yaml` but never
+  referenced in any Dart code: `lap.png`, `post.png`, `profile.png`, `profile_me.png`. Git history
+  shows `post/profile/profile_me` were used by the **original MVP** feed & calendar; the
+  modernization refactor deleted the widgets but left the files and pubspec lines. `lap.png` was
+  never referenced (only `lap2.png` is used), and `profile.png`/`profile_me.png` were byte-identical
+  duplicates. **All four files and their pubspec entries have been removed** as part of this audit's
+  quick-win cleanup; `flutter pub get` still resolves.
+- **Web is already scaffolded.** `lap_fitness/web/` exists (`index.html`, `manifest.json`,
+  `icons/`, `favicon.png`), `.metadata` lists web as a supported platform, and
+  `firebase_options.dart` carries a `web` config. Web is a viable target today.
+- **This environment can't *run* the app.** `firebase_options.dart:34-38` throws `UnsupportedError`
+  on Linux (and Windows); only web/macOS/iOS/Android are configured. Verifying runtime behavior here
+  means `flutter build web` / running the web build, not a native run.
+- **Lint "zero issues" is partly achieved by suppression.** 14 files carry `// ignore_for_file:`
+  headers, almost all suppressing `prefer_const_constructors` / `prefer_const_literals`. Real
+  hygiene debt sitting under a green `flutter analyze`. *(Roadmapped for de-suppression.)*
+- **CI is solid.** `.github/workflows/ci.yml` runs `dart format --set-exit-if-changed`,
+  `flutter analyze`, and `flutter test --coverage` on push/PR, Flutter pinned to 3.44.4.
+- **Committed Firebase config.** `firebase_options.dart` commits client API keys and a public
+  `databaseURL`. These are client identifiers, not secrets (normal for FlutterFire), but it
+  underscores that **all** data protection rests on the (currently absent-from-repo) RTDB rules.
+
+## 7. One-line status summary
 
 | Feature | Status |
 |---|---|
 | Login | Working (no loading indicator) |
 | Register | Working (no loading indicator) |
-| Forgot password | Working |
-| Profile / onboarding | Partial (weak validation, completeness inconsistency) |
-| Home shell / dashboard | Working (dead `WorkoutTracker` assignment; not dark-mode aware) |
-| Social feed | Partial (dead like/comment fields, no empty/loading state, weak "privacy") |
-| Notes | Partial (title cursor-reset bug, writes per keystroke) |
+| Forgot password | Working (ambiguous 2s auto-pop) |
+| Profile / onboarding | Partial (weak validation, completeness inconsistency, live stream clobbers edits) |
+| Home shell / dashboard | Working (dead `WorkoutTracker` assignment; frozen `DateTime.now()`; not dark-mode aware) |
+| Social feed | Partial (dead like/comment fields, no empty/loading state, weak "privacy", stream dies on bad node, delete wipes empty-`postId` posts) |
+| Notes | Partial (title cursor-reset + controller leak, wrong-note content binding, writes per keystroke) |
 | Calendar | Partial (first-render misalignment, no note indicators) |
 | Workout tracker | Partial (ephemeral; nothing persists; dead code) |
-| Water intake | Working (fixed per-user; but never resets daily) |
+| Water intake | Working per-user, but never resets daily + rapid taps lose increments |
 | Meal tracker | Partial (no date scoping; ignores calorie target) |
 | Settings menu | Working |
-| Account settings | Broken (null-check crash on success path) |
+| Account settings | Broken (null-crash on success path; delete unhandled + orphans data) |
 | Privacy settings | Working (no feedback; unclear meaning) |
 
 ---

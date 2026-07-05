@@ -71,11 +71,7 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   assets:
-    - assets/images/lap.png
     - assets/images/lap2.png
-    - assets/images/post.png
-    - assets/images/profile_me.png
-    - assets/images/profile.png
     - assets/images/lunges.png
     - assets/images/push-ups.png
     - assets/images/squats.png
