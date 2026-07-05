@@ -43,6 +43,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
           .verifyBeforeUpdateEmail(_emailController.text);
 
       // Show a success message
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content:
               Text('Verification link sent to ${_emailController.text}.')));
@@ -70,6 +71,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
           .updatePassword(_passwordController.text);
 
       // Show a success message
+      if (!mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Password updated.')));
 
@@ -84,8 +86,9 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
   }
 
   Future<void> _deleteAccount() async {
-    // Show a confirmation dialog before deleting the account
-    bool confirmed = await showDialog(
+    // Show a confirmation dialog before deleting the account. Barrier-dismissing
+    // the dialog returns null, so default to "not confirmed".
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -106,7 +109,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
       },
     );
     // If the user confirms, delete the account and sign out
-    if (confirmed) {
+    if (confirmed ?? false) {
       // After deletion the auth state change drives the router back to /login.
       await ref.read(authRepositoryProvider).deleteAccount();
       await ref.read(authRepositoryProvider).signOut();

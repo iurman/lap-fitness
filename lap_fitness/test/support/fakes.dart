@@ -26,9 +26,10 @@ class FakeUser implements User {
 }
 
 class FakeAuthRepository implements AuthRepository {
+  /// Pass `uid: null` to simulate a signed-out user.
   FakeAuthRepository({this.uid = 'test-uid'});
 
-  final String uid;
+  final String? uid;
 
   @override
   String? get currentUid => uid;
@@ -37,7 +38,8 @@ class FakeAuthRepository implements AuthRepository {
   String get currentEmail => 'tester@example.com';
 
   @override
-  Stream<User?> authStateChanges() => Stream.value(FakeUser(uid));
+  Stream<User?> authStateChanges() =>
+      Stream.value(uid == null ? null : FakeUser(uid!));
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

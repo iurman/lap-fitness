@@ -1,13 +1,12 @@
-import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/logging/app_logger.dart';
 import '../../../core/providers.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../profile/data/profile_repository.dart';
 import '../data/feed_repository.dart';
@@ -21,9 +20,11 @@ class FeedPage extends ConsumerStatefulWidget {
 }
 
 class _FeedPageState extends ConsumerState<FeedPage> {
-  List<Post> _feedData = [];
+  final List<Post> _feedData = [];
   final TextEditingController _postController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  StreamSubscription<Post>? _addedSub;
+  StreamSubscription<String>? _removedSub;
 
   AuthRepository get _authRepo => ref.read(authRepositoryProvider);
   FeedRepository get _feedRepo => ref.read(feedRepositoryProvider);
@@ -32,59 +33,49 @@ class _FeedPageState extends ConsumerState<FeedPage> {
   @override
   void initState() {
     super.initState();
-    _loadFeedData(); // Load saved data from SharedPreferences
     _fetchFeedData();
   }
 
   @override
   void dispose() {
+    _addedSub?.cancel();
+    _removedSub?.cancel();
     _postController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  void _loadFeedData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? feedDataJson = prefs.getString('feedData');
-    if (feedDataJson != null) {
-      List<dynamic> feedData = json.decode(feedDataJson);
-      setState(() {
-        _feedData = feedData
-            .map((e) => Post.fromMap(e as Map<dynamic, dynamic>))
-            .toList();
-      });
-    }
-  }
-
   void _fetchFeedData() {
-    _feedRepo.onPostAdded().listen((post) {
+    // Posts stream in from the Realtime Database (childAdded replays existing
+    // posts on subscribe, then pushes new ones), so it is the single source of
+    // truth — no local cache to avoid double-loading.
+    _addedSub = _feedRepo.onPostAdded().listen((post) {
+      if (!mounted) return;
       setState(() {
         _feedData.add(post);
       });
-      // Scroll to the most recent post after loading all the posts
+      // Scroll to the most recent post.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        }
       });
     }, onError: (Object error, StackTrace stackTrace) {
       appLogger.warning('Error fetching feed data', error, stackTrace);
     });
 
-    _feedRepo.onPostRemoved().listen((postId) {
+    _removedSub = _feedRepo.onPostRemoved().listen((postId) {
+      if (!mounted) return;
       setState(() {
         _feedData.removeWhere((post) => post.postId == postId);
       });
     }, onError: (Object error, StackTrace stackTrace) {
       appLogger.warning('Error removing feed data', error, stackTrace);
     });
-  }
-
-  void _saveFeedData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-        'feedData', json.encode(_feedData.map((p) => p.toMap()).toList()));
   }
 
   void _addPost(String body) async {
@@ -102,14 +93,10 @@ class _FeedPageState extends ConsumerState<FeedPage> {
   }
 
   void _deletePost(Post post) {
-    final currentUserUid = _authRepo.currentUid;
-    if (post.userId == currentUserUid) {
-      _feedRepo.deletePost(post).then((value) {
-        setState(() {
-          _feedData.removeWhere((p) => p.postId == post.postId);
-        });
-        _saveFeedData();
-      });
+    // Only the author may delete; the onPostRemoved stream drops it from the
+    // list once the backend confirms the removal.
+    if (post.userId == _authRepo.currentUid) {
+      _feedRepo.deletePost(post);
     }
   }
 

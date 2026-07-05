@@ -51,3 +51,5 @@ app.*.map.json
 /linux/flutter/generated_plugin_registrant.h
 /linux/flutter/generated_plugin_registrant.cc
 /linux/flutter/generated_plugin.cmake
+# Test coverage output
+/coverage/

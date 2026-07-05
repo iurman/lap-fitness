@@ -1,7 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../core/go_router_refresh_stream.dart';
 import '../core/providers.dart';
 import '../features/auth/presentation/forgot_pw_page.dart';
 import '../features/auth/presentation/login_page.dart';
@@ -32,11 +32,17 @@ abstract final class Routes {
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authRepo = ref.watch(authRepositoryProvider);
+  // Drive the router's refresh off authStateProvider itself so the redirect
+  // always reads the freshly-updated auth value. Using a second, independent
+  // subscription to authStateChanges() would race with the provider's own
+  // subscription and could strand the user on /login after signing in.
+  final refresh = ValueNotifier<int>(0);
+  ref.onDispose(refresh.dispose);
+  ref.listen(authStateProvider, (_, __) => refresh.value++);
 
   final router = GoRouter(
     initialLocation: Routes.login,
-    refreshListenable: GoRouterRefreshStream(authRepo.authStateChanges()),
+    refreshListenable: refresh,
     redirect: (context, state) {
       final authState = ref.read(authStateProvider);
       // Wait for the first auth event before deciding anything.

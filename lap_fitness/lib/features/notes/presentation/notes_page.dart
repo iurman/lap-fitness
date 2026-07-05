@@ -1,7 +1,6 @@
 // ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, library_private_types_in_public_api
 import 'dart:async';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,7 +31,6 @@ class _NotesPageState extends ConsumerState<NotesPage> {
   NotesRepository get _notesRepo => ref.read(notesRepositoryProvider);
   List<Note> notesList = [];
   StreamSubscription<List<Note>>? _notesSub;
-  bool _listenerSet = false;
   String? _uid;
 
   // Function to add a new note to Firebase
@@ -63,25 +61,21 @@ class _NotesPageState extends ConsumerState<NotesPage> {
   void initState() {
     super.initState();
 
-    _authRepo.authStateChanges().listen((User? firebaseUser) {
-      if (firebaseUser != null && !_listenerSet) {
-        _listenerSet = true;
-        _uid = firebaseUser.uid;
+    _uid = _authRepo.currentUid;
+    if (_uid != null) {
+      final DateTime? day =
+          (!widget.showAllNotes && widget.selectedDate != null)
+              ? widget.selectedDate
+              : null;
 
-        final DateTime? day =
-            (!widget.showAllNotes && widget.selectedDate != null)
-                ? widget.selectedDate
-                : null;
-
-        _notesSub = _notesRepo.watchNotes(_uid!, day: day).listen((notes) {
-          if (mounted) {
-            setState(() {
-              notesList = notes;
-            });
-          }
-        });
-      }
-    });
+      _notesSub = _notesRepo.watchNotes(_uid!, day: day).listen((notes) {
+        if (mounted) {
+          setState(() {
+            notesList = notes;
+          });
+        }
+      });
+    }
   }
 
   @override

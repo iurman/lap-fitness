@@ -35,6 +35,7 @@ class _MealTrackingPageState extends ConsumerState<MealTrackingPage> {
     super.initState();
     _uid = _authRepo.currentUid!;
     _streamSubscription = _mealsRepo.watchMeals(_uid).listen((meals) {
+      if (!mounted) return;
       setState(() {
         mealJournal = meals;
       });

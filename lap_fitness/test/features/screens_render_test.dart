@@ -32,18 +32,22 @@ void main() {
     expect(find.byType(BottomNavigationBar), findsOneWidget);
   });
 
-  testWidgets('WorkoutTracker renders', (tester) async {
+  testWidgets('WorkoutTracker renders its set/rep counter and controls',
+      (tester) async {
     await tester.pumpWidget(
       ProviderScope(child: MaterialApp(home: WorkoutTracker())),
     );
-    expect(find.byType(WorkoutTracker), findsOneWidget);
+    expect(find.text('Set 1 - Rep 1'), findsOneWidget);
+    expect(find.text('Start'), findsOneWidget);
+    expect(find.text('Next Set'), findsOneWidget);
   });
 
-  testWidgets('CalendarPage renders a month grid', (tester) async {
+  testWidgets('CalendarPage renders numbered day cells', (tester) async {
     await tester.pumpWidget(
       ProviderScope(child: MaterialApp(home: CalendarPage())),
     );
-    expect(find.byType(GridView), findsOneWidget);
+    // Every month contains a 15th; its cell should be rendered.
+    expect(find.text('15'), findsOneWidget);
   });
 
   testWidgets('SettingsPage lists the settings options', (tester) async {
@@ -81,8 +85,9 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(find.byType(Switch), findsOneWidget);
     expect(find.text('Private Mode'), findsOneWidget);
+    // The switch reflects the persisted privateMode value from the repository.
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
   });
 
   testWidgets('UserInfoPage renders the profile form', (tester) async {
@@ -97,12 +102,14 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(find.text('Age'), findsOneWidget);
-    expect(find.text('Target Calories'), findsOneWidget);
     expect(find.text('Save'), findsOneWidget);
+    // The form prefills from the injected profile.
+    expect(find.text('30'), findsOneWidget); // age
+    expect(find.text('180'), findsOneWidget); // weight
   });
 
-  testWidgets('NotesPage renders a notes grid', (tester) async {
+  testWidgets('NotesPage renders notes loaded from the repository',
+      (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -115,7 +122,7 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(find.byType(GridView), findsOneWidget);
+    expect(find.text('Leg day'), findsOneWidget);
   });
 
   testWidgets('FeedPage renders posts from the repository', (tester) async {
@@ -155,5 +162,23 @@ void main() {
     );
     await tester.pump();
     expect(find.text('Water Intake: 5 cups'), findsOneWidget);
+  });
+
+  testWidgets('WaterTracker increments the count on tap', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
+          waterRepositoryProvider.overrideWithValue(FakeWaterRepository(5)),
+        ],
+        child: MaterialApp(home: WaterTracker()),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('Water Intake: 5 cups'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump();
+    expect(find.text('Water Intake: 6 cups'), findsOneWidget);
   });
 }
