@@ -68,6 +68,5 @@ class Note {
       other.selectedDate == selectedDate;
 
   @override
-  int get hashCode =>
-      Object.hash(key, name, content, createdAt, selectedDate);
+  int get hashCode => Object.hash(key, name, content, createdAt, selectedDate);
 }

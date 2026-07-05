@@ -9,8 +9,10 @@ class ProfileRepository {
 
   /// Live profile updates for [uid].
   Stream<UserProfile> watchProfile(String uid) {
-    return _refs.user(uid).onValue.map(
-        (event) => UserProfile.fromMap(event.snapshot.value as Map?));
+    return _refs
+        .user(uid)
+        .onValue
+        .map((event) => UserProfile.fromMap(event.snapshot.value as Map?));
   }
 
   /// One-shot profile read for [uid].

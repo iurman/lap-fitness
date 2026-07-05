@@ -54,8 +54,7 @@ void main() {
     test('isComplete requires the core fields', () {
       expect(const UserProfile().isComplete, isFalse);
       expect(
-        const UserProfile(age: '30', gender: 'Male', weight: '180')
-            .isComplete,
+        const UserProfile(age: '30', gender: 'Male', weight: '180').isComplete,
         isFalse,
       );
       expect(

@@ -14,8 +14,7 @@ class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({super.key});
 
   @override
-  ConsumerState<ForgotPasswordPage> createState() =>
-      _ForgotPasswordPageState();
+  ConsumerState<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
 }
 
 class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
@@ -93,8 +92,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: AppColors.brand),
+                  borderSide: BorderSide(color: AppColors.brand),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 hintText: 'Email',

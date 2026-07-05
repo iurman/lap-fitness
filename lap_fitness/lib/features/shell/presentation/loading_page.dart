@@ -29,8 +29,9 @@ class _LoadingPageState extends ConsumerState<LoadingPage> {
           ? null
           : await ref.read(profileRepositoryProvider).getProfile(uid);
       if (!mounted) return;
-      context.go(
-          profile != null && profile.isComplete ? Routes.home : Routes.onboarding);
+      context.go(profile != null && profile.isComplete
+          ? Routes.home
+          : Routes.onboarding);
     } catch (_) {
       if (mounted) context.go(Routes.onboarding);
     }

@@ -86,6 +86,6 @@ class Post {
       other.liked == liked;
 
   @override
-  int get hashCode => Object.hash(
-      key, userId, postId, body, userEmail, displayName, liked);
+  int get hashCode =>
+      Object.hash(key, userId, postId, body, userEmail, displayName, liked);
 }

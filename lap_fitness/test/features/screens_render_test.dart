@@ -142,7 +142,8 @@ void main() {
     expect(find.text('Great workout!'), findsOneWidget);
   });
 
-  testWidgets('WaterTracker shows the persisted per-user count', (tester) async {
+  testWidgets('WaterTracker shows the persisted per-user count',
+      (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [

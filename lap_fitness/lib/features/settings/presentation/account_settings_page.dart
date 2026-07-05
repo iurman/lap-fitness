@@ -44,7 +44,8 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
 
       // Show a success message
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Verification link sent to ${_emailController.text}.')));
+          content:
+              Text('Verification link sent to ${_emailController.text}.')));
 
       // Clear the form
       _formKey.currentState!.reset();
@@ -133,9 +134,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
                     children: [
                       Text(
                         'Change Email',
-                        style: TextStyle(
-                            color: AppColors.brand,
-                            fontSize: 18),
+                        style: TextStyle(color: AppColors.brand, fontSize: 18),
                       ),
                       SizedBox(height: 16.0),
                       Form(
@@ -182,9 +181,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
                     children: [
                       Text(
                         'Change Password',
-                        style: TextStyle(
-                            color: AppColors.brand,
-                            fontSize: 18),
+                        style: TextStyle(color: AppColors.brand, fontSize: 18),
                       ),
                       SizedBox(height: 16.0),
                       Form(

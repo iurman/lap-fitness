@@ -91,8 +91,7 @@ class _FeedPageState extends ConsumerState<FeedPage> {
     final userId = _authRepo.currentUid!;
     final userEmail = _authRepo.currentEmail;
     final profile = await _profileRepo.getProfile(userId);
-    final displayName =
-        profile.privateMode ? const Uuid().v4() : userEmail;
+    final displayName = profile.privateMode ? const Uuid().v4() : userEmail;
 
     await _feedRepo.addPost(
       userId: userId,

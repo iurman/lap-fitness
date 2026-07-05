@@ -19,8 +19,7 @@ void main() {
       ProviderScope(
         overrides: [
           authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
-          mealsRepositoryProvider
-              .overrideWithValue(FakeMealsRepository(meals)),
+          mealsRepositoryProvider.overrideWithValue(FakeMealsRepository(meals)),
         ],
         child: MaterialApp(home: MealTrackingPage()),
       ),

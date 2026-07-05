@@ -43,8 +43,10 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
     super.initState();
     _uid = ref.read(authRepositoryProvider).currentUid!;
 
-    _profileSub =
-        ref.read(profileRepositoryProvider).watchProfile(_uid).listen((profile) {
+    _profileSub = ref
+        .read(profileRepositoryProvider)
+        .watchProfile(_uid)
+        .listen((profile) {
       if (!mounted) return;
       setState(() {
         _ageController.text = profile.age;
