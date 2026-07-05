@@ -14,34 +14,34 @@ class AppTheme {
         textTheme: ButtonTextTheme.primary,
       ),
       textTheme: TextTheme(
-        bodyText1: TextStyle(
+        bodyLarge: TextStyle(
           color: Color.fromARGB(255, 138, 104, 35),
         ),
-        bodyText2: TextStyle(
+        bodyMedium: TextStyle(
           color: Color.fromARGB(255, 138, 104, 35),
         ),
-        headline1: TextStyle(
+        displayLarge: TextStyle(
           color: Color.fromARGB(255, 138, 104, 35),
         ),
-        headline2: TextStyle(
+        displayMedium: TextStyle(
           color: Color.fromARGB(255, 138, 104, 35),
         ),
-        headline3: TextStyle(
+        displaySmall: TextStyle(
           color: Color.fromARGB(255, 138, 104, 35),
         ),
-        headline4: TextStyle(
+        headlineMedium: TextStyle(
           color: Color.fromARGB(255, 138, 104, 35),
         ),
-        headline5: TextStyle(
+        headlineSmall: TextStyle(
           color: Color.fromARGB(255, 138, 104, 35),
         ),
-        headline6: TextStyle(
+        titleLarge: TextStyle(
           color: Color.fromARGB(255, 138, 104, 35),
         ),
-        subtitle1: TextStyle(
+        titleMedium: TextStyle(
           color: Color.fromARGB(255, 138, 104, 35),
         ),
-        subtitle2: TextStyle(
+        titleSmall: TextStyle(
           color: Color.fromARGB(255, 138, 104, 35),
         ),
       ),

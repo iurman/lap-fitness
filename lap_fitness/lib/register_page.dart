@@ -13,9 +13,9 @@ import 'package:lap_fitness/user_info.dart';
 class RegisterPage extends StatefulWidget {
   final VoidCallback showLoginPage;
   const RegisterPage({
-    Key? key,
+    super.key,
     required this.showLoginPage,
-  }) : super(key: key);
+  });
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();

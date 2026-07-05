@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, library_private_types_in_public_api, deprecated_member_use
+// ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, library_private_types_in_public_api
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -17,14 +17,14 @@ class NotesPage extends StatefulWidget {
 }
 
 class _NotesPageState extends State<NotesPage> {
-  final databaseReference = FirebaseDatabase.instance.reference();
+  final databaseReference = FirebaseDatabase.instance.ref();
   User? user = FirebaseAuth.instance.currentUser;
   List notesList = [];
 
-  get database => null;
+  Null get database => null;
 
   // Function to add a new note to Firebase
-  addNewNote() async {
+  Future<void> addNewNote() async {
     await databaseReference
         .child("users")
         .child(user!.uid)
@@ -42,7 +42,7 @@ class _NotesPageState extends State<NotesPage> {
   }
 
   // Function to update the name of a note in Firebase
-  updateNoteName(String key, String name) async {
+  Future<void> updateNoteName(String key, String name) async {
     await databaseReference
         .child("users")
         .child(user!.uid)
@@ -55,7 +55,7 @@ class _NotesPageState extends State<NotesPage> {
   }
 
   // Function to update the content of a note in Firebase
-  updateNoteContent(String key, String content) async {
+  Future<void> updateNoteContent(String key, String content) async {
     await databaseReference
         .child("users")
         .child(user!.uid)
@@ -66,7 +66,7 @@ class _NotesPageState extends State<NotesPage> {
   }
 
   // Function to delete a note from Firebase
-  deleteNote(String key) async {
+  Future<void> deleteNote(String key) async {
     await databaseReference
         .child("users")
         .child(user!.uid)

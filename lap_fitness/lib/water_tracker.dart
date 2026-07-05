@@ -18,7 +18,7 @@ class _WaterTrackerState extends State<WaterTracker> {
   void initState() {
     super.initState();
     Firebase.initializeApp(); // Initialize Firebase
-    _waterIntakeRef = FirebaseDatabase.instance.reference().child(
+    _waterIntakeRef = FirebaseDatabase.instance.ref().child(
         'waterIntake'); // Reference to the 'waterIntake' node in the database
   }
 

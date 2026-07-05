@@ -12,7 +12,7 @@ import 'package:lap_fitness/workout_tracker.dart';
 import 'package:lap_fitness/water_tracker.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -87,8 +87,8 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Center(
                     child: SizedBox(
-                      child: Image.asset('assets/images/lap2.png'),
                       height: 80,
+                      child: Image.asset('assets/images/lap2.png'),
                     ),
                   ),
                   SizedBox(height: 16),

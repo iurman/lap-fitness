@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api, unused_field, deprecated_member_use, prefer_const_constructors, sort_child_properties_last
+// ignore_for_file: library_private_types_in_public_api, unused_field, prefer_const_constructors, sort_child_properties_last
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,8 +10,7 @@ class UserInfoPage extends StatefulWidget {
   final String? calories;
   final bool showBackButton; // Add a new parameter to control the back button
 
-  const UserInfoPage({Key? key, this.calories, this.showBackButton = false})
-      : super(key: key);
+  const UserInfoPage({super.key, this.calories, this.showBackButton = false});
 
   @override
   _UserInfoPageState createState() => _UserInfoPageState();
@@ -42,7 +41,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
     super.initState();
     _currentUser = FirebaseAuth.instance.currentUser!;
     _userRef = FirebaseDatabase.instance
-        .reference()
+        .ref()
         .child('users')
         .child(_currentUser.uid);
 

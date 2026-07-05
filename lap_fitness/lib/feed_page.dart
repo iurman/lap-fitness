@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-import 'dart:async';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -7,23 +5,24 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart'; // Import the uuid library
 import 'package:collection/collection.dart';
-import 'privacy_settings_page.dart';
 
 class FeedPage extends StatefulWidget {
+  const FeedPage({super.key});
+
   @override
   _FeedPageState createState() => _FeedPageState();
 }
 
 class _FeedPageState extends State<FeedPage> {
   List<Map<String, dynamic>> _feedData = [];
-  TextEditingController _postController = TextEditingController();
+  final TextEditingController _postController = TextEditingController();
   final DatabaseReference _usersDatabase =
-      FirebaseDatabase.instance.reference().child('users');
+      FirebaseDatabase.instance.ref().child('users');
 
   final DatabaseReference _database =
-      FirebaseDatabase.instance.reference().child('feedData');
+      FirebaseDatabase.instance.ref().child('feedData');
 
-  ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -61,7 +60,7 @@ class _FeedPageState extends State<FeedPage> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _scrollController.animateTo(
             _scrollController.position.maxScrollExtent,
-            duration: Duration(milliseconds: 300),
+            duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
           );
         });
@@ -99,7 +98,7 @@ class _FeedPageState extends State<FeedPage> {
     });
 
     // Generate random name
-    String randomName = Uuid().v4();
+    String randomName = const Uuid().v4();
 
     DatabaseReference newPostRef = _database.push();
     Map<String, dynamic> newPost = {
@@ -117,7 +116,7 @@ class _FeedPageState extends State<FeedPage> {
       print('Post added successfully');
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
-        duration: Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     }).catchError((error) {
@@ -169,24 +168,24 @@ class _FeedPageState extends State<FeedPage> {
 
                   trailing: isCurrentUserPost
                       ? IconButton(
-                          icon: Icon(Icons.delete),
+                          icon: const Icon(Icons.delete),
                           onPressed: () {
                             showDialog(
                               context: context,
                               builder: (BuildContext context) {
                                 return AlertDialog(
-                                  title: Text('Delete Post'),
-                                  content: Text(
+                                  title: const Text('Delete Post'),
+                                  content: const Text(
                                       'Are you sure you want to delete this post?'),
                                   actions: [
                                     TextButton(
-                                      child: Text('Cancel'),
+                                      child: const Text('Cancel'),
                                       onPressed: () {
                                         Navigator.pop(context);
                                       },
                                     ),
                                     TextButton(
-                                      child: Text('Delete'),
+                                      child: const Text('Delete'),
                                       onPressed: () {
                                         Navigator.pop(context);
                                         String postId = post['postId'];
@@ -206,13 +205,13 @@ class _FeedPageState extends State<FeedPage> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _postController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: 'Enter post',
                     ),
                   ),
@@ -222,18 +221,18 @@ class _FeedPageState extends State<FeedPage> {
                     String body = _postController.text;
                     if (body.isNotEmpty) {
                       String userId = FirebaseAuth.instance.currentUser!.uid;
-                      String postId = Uuid()
+                      String postId = const Uuid()
                           .v4(); // Generate a unique ID using uuid library
                       _addPost(body, userId, postId);
                       _postController.clear();
                     }
                   },
-                  child: Text('Post'),
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                      Color.fromARGB(255, 138, 104, 35),
+                    backgroundColor: WidgetStateProperty.all<Color>(
+                      const Color.fromARGB(255, 138, 104, 35),
                     ),
                   ),
+                  child: const Text('Post'),
                 ),
               ],
             ),

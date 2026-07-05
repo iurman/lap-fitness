@@ -32,13 +32,14 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
     }
 
     try {
-      // Update the email address
+      // Send a verification link to the new address; the change is applied
+      // once the user confirms. `updateEmail` was removed in firebase_auth 6.x.
       await FirebaseAuth.instance.currentUser!
-          .updateEmail(_emailController.text);
+          .verifyBeforeUpdateEmail(_emailController.text);
 
       // Show a success message
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Email address updated.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Verification link sent to ${_emailController.text}.')));
 
       // Clear the form
       _formKey.currentState!.reset();
@@ -161,7 +162,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                         onPressed: _changeEmail,
                         child: Text('Change Email'),
                         style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
+                          backgroundColor: WidgetStateProperty.all<Color>(
                             Color.fromARGB(255, 138, 104, 35),
                           ),
                         ),
@@ -209,7 +210,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                         onPressed: _changePassword,
                         child: Text('Change Password'),
                         style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
+                          backgroundColor: WidgetStateProperty.all<Color>(
                             Color.fromARGB(255, 138, 104, 35),
                           ),
                         ),
@@ -224,7 +225,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                 onPressed: _deleteAccount,
                 child: Text('Delete Account'),
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+                  backgroundColor: WidgetStateProperty.all<Color>(Colors.red),
                 ),
               ),
               Spacer(),

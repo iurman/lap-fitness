@@ -1,4 +1,4 @@
-// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, deprecated_member_use, duplicate_ignore, prefer_const_constructors
+// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors
 
 import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
@@ -30,9 +30,8 @@ class _MealTrackingPageState extends State<MealTrackingPage> {
     final currentUserID = FirebaseAuth.instance.currentUser!.uid;
 
     // Update the meals reference to include the user ID
-    // ignore: deprecated_member_use
     mealsReference = FirebaseDatabase.instance
-        .reference()
+        .ref()
         .child('meals')
         .child(currentUserID);
 

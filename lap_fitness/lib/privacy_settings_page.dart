@@ -6,7 +6,7 @@ import 'package:firebase_database/firebase_database.dart';
 class PrivacySettingsPage extends StatefulWidget {
   final String userId;
 
-  PrivacySettingsPage({required this.userId});
+  const PrivacySettingsPage({required this.userId});
 
   @override
   _PrivacySettingsPageState createState() => _PrivacySettingsPageState();
@@ -15,7 +15,7 @@ class PrivacySettingsPage extends StatefulWidget {
 class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
   bool _privateMode = false;
   final DatabaseReference _usersDatabase =
-      FirebaseDatabase.instance.reference().child('users');
+      FirebaseDatabase.instance.ref().child('users');
 
   @override
   void initState() {

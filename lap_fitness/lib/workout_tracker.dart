@@ -182,7 +182,7 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
                 onPressed: _isRunning ? _pauseTimer : _startTimer,
                 child: Text(_isRunning ? 'Pause' : 'Start'),
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(
+                  backgroundColor: WidgetStateProperty.all<Color>(
                     Color.fromARGB(255, 138, 104, 35),
                   ),
                 ),
@@ -192,7 +192,7 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
                 onPressed: _nextSet,
                 child: Text('Next Set'),
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(
+                  backgroundColor: WidgetStateProperty.all<Color>(
                     Color.fromARGB(255, 138, 104, 35),
                   ),
                 ),
