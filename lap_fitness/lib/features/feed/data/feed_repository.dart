@@ -13,20 +13,21 @@ class FeedRepository {
 
   DatabaseReference get _feed => _refs.feed();
 
-  /// Emits each post as it is added to the feed.
+  /// Emits each post as it is added to the feed. Malformed nodes (null or
+  /// non-map values) are skipped rather than thrown, so one bad record can't
+  /// kill the whole subscription.
   Stream<Post> onPostAdded() {
-    return _feed.onChildAdded.map((event) {
-      final data = event.snapshot.value as Map;
-      return Post.fromMap(data);
-    });
+    return _feed.onChildAdded
+        .map((event) => event.snapshot.value)
+        .where((value) => value is Map)
+        .map((value) => Post.fromMap(value as Map));
   }
 
-  /// Emits the removed post (by `postId`) whenever a post leaves the feed.
+  /// Emits the Firebase push key of each post as it leaves the feed. The key is
+  /// unique per node, so removals map 1:1 (matching on `postId` could delete
+  /// several legacy posts that share an empty id).
   Stream<String> onPostRemoved() {
-    return _feed.onChildRemoved.map((event) {
-      final data = event.snapshot.value as Map?;
-      return (data?['postId'] ?? '').toString();
-    });
+    return _feed.onChildRemoved.map((event) => event.snapshot.key ?? '');
   }
 
   /// Adds a post authored by [userId]. [displayName] is anonymized upstream

@@ -37,6 +37,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   }
 
   Future<void> signUp() async {
+    if (isLoading) return;
     if (!passwordConfirmed()) {
       _showMessage('The passwords do not match.');
       return;
@@ -194,7 +195,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
                   child: GestureDetector(
-                    onTap: signUp,
+                    onTap: isLoading ? null : signUp,
                     child: Container(
                       padding: EdgeInsets.all(25),
                       decoration: BoxDecoration(
@@ -202,14 +203,23 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
-                        child: Text(
-                          'Sign Up',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                          ),
-                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : Text(
+                                'Sign Up',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                ),
+                              ),
                       ),
                     ),
                   ),

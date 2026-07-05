@@ -36,21 +36,11 @@ class _WaterTrackerState extends ConsumerState<WaterTracker> {
     super.dispose();
   }
 
-  void _incrementWaterIntake() {
-    setState(() {
-      _waterIntake++;
-      _waterRepo.setIntake(_uid, _waterIntake);
-    });
-  }
+  // The displayed count is driven entirely by the watchIntake stream; taps just
+  // request an atomic adjustment so concurrent taps can't lose updates.
+  void _incrementWaterIntake() => unawaited(_waterRepo.adjust(_uid, 1));
 
-  void _decrementWaterIntake() {
-    setState(() {
-      if (_waterIntake > 0) {
-        _waterIntake--;
-        _waterRepo.setIntake(_uid, _waterIntake);
-      }
-    });
-  }
+  void _decrementWaterIntake() => unawaited(_waterRepo.adjust(_uid, -1));
 
   @override
   Widget build(BuildContext context) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lap_fitness/features/auth/data/auth_repository.dart';
 import 'package:lap_fitness/features/feed/data/feed_repository.dart';
@@ -142,15 +144,22 @@ class FakeFeedRepository implements FeedRepository {
 }
 
 class FakeWaterRepository implements WaterRepository {
-  FakeWaterRepository([this.cups = 3]);
+  FakeWaterRepository([int initial = 3]) : _value = initial;
 
-  final int cups;
-
-  @override
-  Stream<int> watchIntake(String uid) => Stream.value(cups);
+  int _value;
+  final _controller = StreamController<int>.broadcast();
 
   @override
-  Future<void> setIntake(String uid, int cups) async {}
+  Stream<int> watchIntake(String uid) async* {
+    yield _value;
+    yield* _controller.stream;
+  }
+
+  @override
+  Future<void> adjust(String uid, int delta) async {
+    _value = (_value + delta) < 0 ? 0 : _value + delta;
+    _controller.add(_value);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

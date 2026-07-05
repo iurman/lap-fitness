@@ -1,7 +1,5 @@
 // ignore_for_file: prefer_const_constructors, sort_child_properties_last
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import 'package:flutter/services.dart';
@@ -36,32 +34,33 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
   final List<String> _genders = ['Male', 'Female', 'Non-binary', 'Other'];
 
   late final String _uid;
-  StreamSubscription<UserProfile>? _profileSub;
 
   @override
   void initState() {
     super.initState();
     _uid = ref.read(authRepositoryProvider).currentUid!;
+    _loadProfile();
+  }
 
-    _profileSub = ref
-        .read(profileRepositoryProvider)
-        .watchProfile(_uid)
-        .listen((profile) {
-      if (!mounted) return;
-      setState(() {
-        _ageController.text = profile.age;
-        _selectedGender = profile.gender.isEmpty ? null : profile.gender;
-        _weightController.text = profile.weight;
-        _heightFeetController.text = profile.heightFeet;
-        _heightInchesController.text = profile.heightInches;
-        _calorieController.text = profile.calories;
-      });
+  /// Loads the existing profile ONCE to prefill the form. A live stream here
+  /// would overwrite the user's in-progress edits on any background write
+  /// (e.g. toggling private mode from the privacy screen), so this is a
+  /// deliberate one-shot read.
+  Future<void> _loadProfile() async {
+    final profile = await ref.read(profileRepositoryProvider).getProfile(_uid);
+    if (!mounted) return;
+    setState(() {
+      _ageController.text = profile.age;
+      _selectedGender = profile.gender.isEmpty ? null : profile.gender;
+      _weightController.text = profile.weight;
+      _heightFeetController.text = profile.heightFeet;
+      _heightInchesController.text = profile.heightInches;
+      _calorieController.text = profile.calories;
     });
   }
 
   @override
   void dispose() {
-    _profileSub?.cancel();
     _ageController.dispose();
     _weightController.dispose();
     _heightFeetController.dispose();

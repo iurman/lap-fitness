@@ -25,6 +25,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool isLoading = false;
 
   Future<void> signIn() async {
+    if (isLoading) return;
     setState(() {
       isLoading = true;
     });
@@ -170,7 +171,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
                   child: GestureDetector(
-                    onTap: signIn,
+                    onTap: isLoading ? null : signIn,
                     child: Container(
                       padding: EdgeInsets.all(25),
                       decoration: BoxDecoration(
@@ -178,14 +179,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
-                        child: Text(
-                          'Sign In',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                          ),
-                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : Text(
+                                'Sign In',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                ),
+                              ),
                       ),
                     ),
                   ),

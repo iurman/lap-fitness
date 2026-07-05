@@ -438,20 +438,25 @@ confirmed:
 
 | Feature | Status |
 |---|---|
-| Login | Working (no loading indicator) |
-| Register | Working (no loading indicator) |
-| Forgot password | Working (ambiguous 2s auto-pop) |
-| Profile / onboarding | Partial (weak validation, completeness inconsistency, live stream clobbers edits) |
-| Home shell / dashboard | Working (dead `WorkoutTracker` assignment; frozen `DateTime.now()`; not dark-mode aware) |
-| Social feed | Partial (dead like/comment fields, no empty/loading state, weak "privacy", stream dies on bad node, delete wipes empty-`postId` posts) |
-| Notes | Partial (title cursor-reset + controller leak, wrong-note content binding, writes per keystroke) |
-| Calendar | Partial (first-render misalignment, no note indicators) |
-| Workout tracker | Partial (ephemeral; nothing persists; dead code) |
-| Water intake | Working per-user, but never resets daily + rapid taps lose increments |
-| Meal tracker | Partial (no date scoping; ignores calorie target) |
-| Settings menu | Working |
-| Account settings | Broken (null-crash on success path; delete unhandled + orphans data) |
-| Privacy settings | Working (no feedback; unclear meaning) |
+> **Note:** the "Original status" column is the as-audited state. **M1** = fixed in Milestone 1
+> (see `GAPS.md` §D); remaining work is tracked by gap ID there.
+
+| Feature | Original status | Now |
+|---|---|---|
+| Login | Working (no loading indicator) | **M1**: spinner + double-submit guard (F17) |
+| Register | Working (no loading indicator) | **M1**: spinner + double-submit guard (F17) |
+| Forgot password | Working (ambiguous 2s auto-pop) | unchanged (U7 → M4) |
+| Profile / onboarding | Partial (weak validation, completeness inconsistency, live stream clobbers edits) | **M1**: edit no longer clobbered (F11); validation/completeness → M2 (F12) |
+| Home shell / dashboard | Working (dead `WorkoutTracker` assignment; frozen `DateTime.now()`; not dark-mode aware) | unchanged (→ M4/M5) |
+| Social feed | Partial (dead fields, no empty/loading state, weak "privacy", stream dies on bad node, delete wipes empty-`postId` posts) | **M1**: stream-death (F6) + mass-delete (F7) fixed; rest → M5/M3 |
+| Notes | Partial (title cursor-reset + controller leak, wrong-note content binding, writes per keystroke) | **M1**: keyed `_NoteCard` fixes cursor/leak/wrong-note binding (F5) |
+| Calendar | Partial (first-render misalignment, no note indicators) | unchanged (→ M4) |
+| Workout tracker | Partial (ephemeral; nothing persists; dead code) | unchanged (F10 → M5) |
+| Water intake | Working per-user, but never resets daily + rapid taps lose increments | **M1**: rapid-tap race fixed via transaction (F4); daily reset → M2 |
+| Meal tracker | Partial (no date scoping; ignores calorie target) | unchanged (F3/F15 → M2) |
+| Settings menu | Working | unchanged |
+| Account settings | Broken (null-crash on success path; delete unhandled + orphans data) | **M1**: null-crash fixed (F1), delete crash-guarded (F2 partial); full re-auth/cleanup → M3 |
+| Privacy settings | Working (no feedback; unclear meaning) | unchanged (X7 → M5) |
 
 ---
 

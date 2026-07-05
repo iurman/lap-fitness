@@ -68,10 +68,10 @@ class _FeedPageState extends ConsumerState<FeedPage> {
       appLogger.warning('Error fetching feed data', error, stackTrace);
     });
 
-    _removedSub = _feedRepo.onPostRemoved().listen((postId) {
-      if (!mounted) return;
+    _removedSub = _feedRepo.onPostRemoved().listen((removedKey) {
+      if (!mounted || removedKey.isEmpty) return;
       setState(() {
-        _feedData.removeWhere((post) => post.postId == postId);
+        _feedData.removeWhere((post) => post.key == removedKey);
       });
     }, onError: (Object error, StackTrace stackTrace) {
       appLogger.warning('Error removing feed data', error, stackTrace);

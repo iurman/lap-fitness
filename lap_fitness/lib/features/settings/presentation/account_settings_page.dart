@@ -14,7 +14,6 @@ class AccountSettingsPage extends ConsumerStatefulWidget {
 }
 
 class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
-  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _emailFormKey = GlobalKey<FormState>();
@@ -49,8 +48,9 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
               Text('Verification link sent to ${_emailController.text}.')));
 
       // Clear the form
-      _formKey.currentState!.reset();
+      _emailFormKey.currentState?.reset();
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       setState(() {
         // Update the error message
         _emailError = e.message;
@@ -76,8 +76,9 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
           .showSnackBar(SnackBar(content: Text('Password updated.')));
 
       // Clear the form
-      _formKey.currentState!.reset();
+      _passwordFormKey.currentState?.reset();
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       setState(() {
         // Update the error message
         _passwordError = e.message;
@@ -108,11 +109,23 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
         );
       },
     );
-    // If the user confirms, delete the account and sign out
+    // If the user confirms, delete the account and sign out.
     if (confirmed ?? false) {
-      // After deletion the auth state change drives the router back to /login.
-      await ref.read(authRepositoryProvider).deleteAccount();
-      await ref.read(authRepositoryProvider).signOut();
+      try {
+        // After deletion the auth state change drives the router back to /login.
+        await ref.read(authRepositoryProvider).deleteAccount();
+        await ref.read(authRepositoryProvider).signOut();
+      } on FirebaseAuthException catch (e) {
+        // `delete()` throws `requires-recent-login` for older sessions. Surface
+        // it instead of crashing on an unhandled async error. (A full re-auth
+        // flow and RTDB data cleanup are planned as a later milestone.)
+        if (!mounted) return;
+        final message = e.code == 'requires-recent-login'
+            ? 'For your security, please sign in again before deleting your account.'
+            : (e.message ?? 'Could not delete account. Please try again.');
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(message)));
+      }
     }
   }
 

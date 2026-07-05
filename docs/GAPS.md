@@ -70,16 +70,26 @@
 Milestones are ordered so each one is independently shippable and lowers risk before the next.
 Effort in parentheses is per-gap; a milestone is the sum.
 
-### Milestone 1 — Stop the bleeding (correctness & crashes)
+### Milestone 1 — Stop the bleeding (correctness & crashes) ✅ SHIPPED
 *Goal: the app never crashes or corrupts data on a normal path.* Cheap, high-impact bug fixes.
-- **F1** account null-crash (S) — **P0, do first**
-- **F6** feed stream null-guard (S)
-- **F7** feed delete by push key, not `postId` (S)
-- **F5** notes editing: add item keys + persistent controllers + commit-on-blur/debounce (M)
-- **F11** profile edit: load once instead of live-subscribing in edit mode (S)
-- **F4 (race half)** water optimistic-update fix (S)
-- **F17** login/register: use `isLoading`, disable button, block double-submit (S)
-> Ships as: *"bugfix: eliminate crash and data-integrity defects."* No new features, all low-risk.
+- [x] **F1** account null-crash — reset the correct form keys, drop the unattached `_formKey`,
+  add `mounted` guards (`account_settings_page.dart`) — **P0**
+- [x] **F6** feed stream survives malformed nodes — skip non-map children instead of throwing
+  (`feed_repository.dart`)
+- [x] **F7** feed delete keyed by the Firebase push key, not `postId` (`feed_repository.dart`,
+  `feed_page.dart`)
+- [x] **F5** notes editing — extracted a keyed `_NoteCard` with persistent controllers; kills the
+  cursor-reset, the per-build controller leak, and the wrong-note content binding (`notes_page.dart`)
+- [x] **F11** profile edit loads once via `getProfile` instead of a live stream, so background
+  writes can't wipe in-progress edits (`user_info_page.dart`)
+- [x] **F4 (race half)** water increments are now an atomic RTDB transaction (`adjust`), so rapid
+  taps can't lose updates; display is stream-driven (`water_repository.dart`, `water_tracker_page.dart`)
+- [x] **F17** login/register show a spinner, disable the button, and early-return while a request
+  is in flight (`login_page.dart`, `register_page.dart`)
+- [x] **F2 (partial)** delete-account no longer throws an unhandled `requires-recent-login` — it's
+  caught and surfaced. *(Full re-auth + RTDB data cleanup remain in Milestone 3.)*
+> **Shipped.** `flutter analyze` clean (0 issues), all 37 tests pass (water/profile fakes updated to
+> match corrected behavior), `flutter build web --release` succeeds. No new features; behavior-restoring only.
 
 ### Milestone 2 — Make the trackers actually track (data model)
 *Goal: daily trackers reflect the day.* This is where the product currently lies to the user.
