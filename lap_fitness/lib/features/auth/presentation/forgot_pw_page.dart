@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -64,7 +65,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Forgot Password"),
-        backgroundColor: Color.fromARGB(255, 138, 104, 35),
+        backgroundColor: AppColors.brand,
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -93,7 +94,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderSide:
-                      BorderSide(color: Color.fromARGB(255, 138, 104, 35)),
+                      BorderSide(color: AppColors.brand),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 hintText: 'Email',
@@ -108,7 +109,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           MaterialButton(
             onPressed: () => passwordReset(),
             child: Text('Reset Password'),
-            color: Color.fromARGB(255, 138, 104, 35),
+            color: AppColors.brand,
           ),
         ],
       ),

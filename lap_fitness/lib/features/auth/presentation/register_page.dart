@@ -2,6 +2,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -197,7 +198,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     child: Container(
                       padding: EdgeInsets.all(25),
                       decoration: BoxDecoration(
-                        color: Color.fromARGB(255, 138, 104, 35),
+                        color: AppColors.brand,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
@@ -230,7 +231,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       child: Text(
                         ' Login now',
                         style: TextStyle(
-                          color: Color.fromARGB(255, 138, 104, 35),
+                          color: AppColors.brand,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

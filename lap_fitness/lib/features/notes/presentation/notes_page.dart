@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -94,7 +95,7 @@ class _NotesPageState extends ConsumerState<NotesPage> {
     return Scaffold(
       appBar: widget.showAppBar
           ? AppBar(
-              backgroundColor: Color.fromARGB(255, 138, 104, 35),
+              backgroundColor: AppColors.brand,
               title: Text(
                   "Notes for ${DateFormat.yMMMd().format(widget.selectedDate ?? DateTime.now())}"),
               leading: IconButton(
@@ -144,7 +145,7 @@ class _NotesPageState extends ConsumerState<NotesPage> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 138, 104, 35),
+                    color: AppColors.brand,
                   ),
                   onChanged: (value) => updateNoteName(note.key, value),
                 ),
@@ -198,7 +199,7 @@ class _NotesPageState extends ConsumerState<NotesPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Color.fromARGB(255, 138, 104, 35),
+        backgroundColor: AppColors.brand,
         child: Icon(Icons.add),
         onPressed: () => addNewNote(),
       ),

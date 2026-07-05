@@ -2,6 +2,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers.dart';
@@ -115,7 +116,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 138, 104, 35),
+        backgroundColor: AppColors.brand,
         title: Text('Account Settings'),
       ),
       body: Center(
@@ -133,7 +134,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
                       Text(
                         'Change Email',
                         style: TextStyle(
-                            color: Color.fromARGB(255, 138, 104, 35),
+                            color: AppColors.brand,
                             fontSize: 18),
                       ),
                       SizedBox(height: 16.0),
@@ -165,7 +166,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
                         child: Text('Change Email'),
                         style: ButtonStyle(
                           backgroundColor: WidgetStateProperty.all<Color>(
-                            Color.fromARGB(255, 138, 104, 35),
+                            AppColors.brand,
                           ),
                         ),
                       ),
@@ -182,7 +183,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
                       Text(
                         'Change Password',
                         style: TextStyle(
-                            color: Color.fromARGB(255, 138, 104, 35),
+                            color: AppColors.brand,
                             fontSize: 18),
                       ),
                       SizedBox(height: 16.0),
@@ -195,7 +196,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
                             labelText: 'New Password',
                             errorText: _passwordError,
                           ),
-                          cursorColor: Color.fromARGB(255, 138, 104, 35),
+                          cursorColor: AppColors.brand,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter a password.';
@@ -213,7 +214,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
                         child: Text('Change Password'),
                         style: ButtonStyle(
                           backgroundColor: WidgetStateProperty.all<Color>(
-                            Color.fromARGB(255, 138, 104, 35),
+                            AppColors.brand,
                           ),
                         ),
                       ),

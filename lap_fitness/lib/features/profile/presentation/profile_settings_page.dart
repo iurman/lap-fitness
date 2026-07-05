@@ -2,13 +2,14 @@
 // ignore_for_file: use_key_in_widget_constructors
 
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 
 class ProfileSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 138, 104, 35),
+        backgroundColor: AppColors.brand,
         title: Text('Profile Settings'),
       ),
       body: Center(

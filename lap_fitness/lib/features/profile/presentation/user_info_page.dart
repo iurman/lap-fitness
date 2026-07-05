@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -100,7 +101,7 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: Color.fromARGB(255, 138, 104, 35),
+          backgroundColor: AppColors.brand,
           title: Text('User Info'),
           automaticallyImplyLeading: !widget.isOnboarding,
         ),
@@ -210,7 +211,7 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
                   child: Text('Save'),
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.all<Color>(
-                      Color.fromARGB(255, 138, 104, 35),
+                      AppColors.brand,
                     ),
                   ),
                 ),

@@ -3,6 +3,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 
 class WorkoutTracker extends StatefulWidget {
   @override
@@ -93,7 +94,7 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
       appBar: AppBar(
         title: Text('Workout Tracker'),
         centerTitle: true,
-        backgroundColor: Color.fromARGB(255, 138, 104, 35),
+        backgroundColor: AppColors.brand,
         leading: IconButton(
           onPressed: () {
             Navigator.pop(context);
@@ -183,7 +184,7 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
                 child: Text(_isRunning ? 'Pause' : 'Start'),
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.all<Color>(
-                    Color.fromARGB(255, 138, 104, 35),
+                    AppColors.brand,
                   ),
                 ),
               ),
@@ -193,7 +194,7 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
                 child: Text('Next Set'),
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.all<Color>(
-                    Color.fromARGB(255, 138, 104, 35),
+                    AppColors.brand,
                   ),
                 ),
               ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -183,7 +184,7 @@ class _FeedPageState extends ConsumerState<FeedPage> {
                   },
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.all<Color>(
-                      const Color.fromARGB(255, 138, 104, 35),
+                      AppColors.brand,
                     ),
                   ),
                   child: const Text('Post'),

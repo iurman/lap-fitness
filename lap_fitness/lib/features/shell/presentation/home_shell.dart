@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
@@ -47,7 +48,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 138, 104, 35),
+        backgroundColor: AppColors.brand,
         title: Text(
           _sections[_selectedIndex]['name'],
           style: TextStyle(
@@ -89,7 +90,7 @@ class _HomePageState extends State<HomePage> {
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 138, 104, 35),
+                        color: AppColors.brand,
                       ),
                     ),
                   ),
@@ -100,7 +101,7 @@ class _HomePageState extends State<HomePage> {
                       width: double.infinity,
                       padding: EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Color.fromARGB(255, 246, 246, 246),
+                        color: AppColors.surfaceMuted,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -110,7 +111,7 @@ class _HomePageState extends State<HomePage> {
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(255, 0, 0, 0),
+                              color: Colors.black,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -120,7 +121,7 @@ class _HomePageState extends State<HomePage> {
                               "Press Here!",
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Color.fromARGB(255, 138, 104, 35),
+                                color: AppColors.brand,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -136,7 +137,7 @@ class _HomePageState extends State<HomePage> {
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 138, 104, 35),
+                        color: AppColors.brand,
                       ),
                     ),
                   ),
@@ -147,7 +148,7 @@ class _HomePageState extends State<HomePage> {
                       width: double.infinity,
                       padding: EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Color.fromARGB(255, 246, 246, 246),
+                        color: AppColors.surfaceMuted,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -159,7 +160,7 @@ class _HomePageState extends State<HomePage> {
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: Color.fromARGB(255, 0, 0, 0),
+                                color: Colors.black,
                               ),
                             ),
                           ),
@@ -169,7 +170,7 @@ class _HomePageState extends State<HomePage> {
                               "Let's kill it today",
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Color.fromARGB(255, 138, 104, 35),
+                                color: AppColors.brand,
                               ),
                             ),
                           ),
@@ -184,7 +185,7 @@ class _HomePageState extends State<HomePage> {
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 138, 104, 35),
+                        color: AppColors.brand,
                       ),
                     ),
                   ),
@@ -195,7 +196,7 @@ class _HomePageState extends State<HomePage> {
                       width: double.infinity,
                       padding: EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Color.fromARGB(255, 246, 246, 246),
+                        color: AppColors.surfaceMuted,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -207,7 +208,7 @@ class _HomePageState extends State<HomePage> {
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: Color.fromARGB(255, 0, 0, 0),
+                                color: Colors.black,
                               ),
                             ),
                           ),
@@ -217,7 +218,7 @@ class _HomePageState extends State<HomePage> {
                               'Tap Here',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Color.fromARGB(255, 138, 104, 35),
+                                color: AppColors.brand,
                               ),
                             ),
                           ),
@@ -235,7 +236,7 @@ class _HomePageState extends State<HomePage> {
               (section) => BottomNavigationBarItem(
                 icon: Icon(
                   section['icon'],
-                  color: Color.fromARGB(255, 138, 104, 35),
+                  color: AppColors.brand,
                 ),
                 label: section['name'],
                 backgroundColor: Colors.white,
@@ -244,8 +245,8 @@ class _HomePageState extends State<HomePage> {
             .toList(),
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: Color.fromARGB(255, 138, 104, 35),
-        unselectedItemColor: Color.fromARGB(255, 138, 104, 35),
+        selectedItemColor: AppColors.brand,
+        unselectedItemColor: AppColors.brand,
       ),
     );
   }

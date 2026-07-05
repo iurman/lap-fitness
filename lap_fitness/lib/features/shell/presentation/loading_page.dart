@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -43,7 +44,7 @@ class _LoadingPageState extends ConsumerState<LoadingPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircularProgressIndicator(
-              color: Color.fromARGB(255, 138, 104, 35),
+              color: AppColors.brand,
             ),
             SizedBox(height: 16),
             Text('Loading...'),

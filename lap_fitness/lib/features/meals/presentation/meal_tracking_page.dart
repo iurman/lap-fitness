@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers.dart';
@@ -142,7 +143,7 @@ class _MealTrackingPageState extends ConsumerState<MealTrackingPage> {
                   child: ElevatedButton(
                     style: ButtonStyle(
                       backgroundColor: WidgetStateProperty.all<Color>(
-                        Color.fromARGB(255, 138, 104, 35),
+                        AppColors.brand,
                       ),
                     ),
                     onPressed: submitMealForm,
